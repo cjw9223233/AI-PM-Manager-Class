@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI PM 經理人班 — 課程概述</title>
+<style>
+:root{
+  --bg:#f7f6f3; --surface:#ffffff; --surface-2:#f0eee9;
+  --text:#1f1e1c; --muted:#6b675f; --line:#e2dfd8;
+  --accent:#b4563a; --accent-soft:#f3e4de;
+  --s1:#3d6b5c; --s2:#b4563a; --s3:#6b5b8f; --s4:#2f6382;
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16151a; --surface:#1f1e25; --surface-2:#282730;
+    --text:#ece9e4; --muted:#a09b93; --line:#343340;
+    --accent:#e28468; --accent-soft:#3a2a26;
+    --s1:#6fb39a; --s2:#e28468; --s3:#a292cf; --s4:#66a6cd;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16151a; --surface:#1f1e25; --surface-2:#282730;
+  --text:#ece9e4; --muted:#a09b93; --line:#343340;
+  --accent:#e28468; --accent-soft:#3a2a26;
+  --s1:#6fb39a; --s2:#e28468; --s3:#a292cf; --s4:#66a6cd;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;
+  line-height:1.75; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px 80px}
+
+header.hero{
+  padding:72px 16px 48px; text-align:center;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--surface) 0%,var(--bg) 100%);
+}
+.hero .kicker{
+  display:inline-block; font-size:.78rem; letter-spacing:.18em;
+  color:var(--accent); border:1px solid var(--accent);
+  padding:4px 12px; border-radius:999px; margin-bottom:20px;
+}
+.hero h1{font-size:clamp(1.9rem,5vw,2.9rem);margin:0 0 14px;letter-spacing:-.01em;line-height:1.3}
+.hero p.lead{max-width:620px;margin:0 auto;color:var(--muted);font-size:1.05rem}
+
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:40px 0}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+.fact .n{font-size:1.7rem;font-weight:700;color:var(--accent);line-height:1.2}
+.fact .l{font-size:.85rem;color:var(--muted);margin-top:4px}
+
+h2.sec{font-size:1.45rem;margin:56px 0 8px;letter-spacing:-.01em}
+h2.sec + p.sub{color:var(--muted);margin:0 0 24px;font-size:.95rem}
+
+.pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.pillar{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.pillar h3{margin:0 0 6px;font-size:1.02rem}
+.pillar p{margin:0;color:var(--muted);font-size:.92rem}
+
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
+.tab{
+  border:1px solid var(--line);background:var(--surface);color:var(--muted);
+  padding:8px 16px;border-radius:999px;cursor:pointer;font-size:.9rem;
+  font-family:inherit;transition:.15s;
+}
+.tab:hover{color:var(--text)}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.weeks{display:grid;gap:12px}
+.week{
+  background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--st);
+  border-radius:var(--radius);padding:18px 20px;
+}
+.week[hidden]{display:none}
+.week .top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.week .no{font-size:.78rem;font-weight:700;color:var(--st);letter-spacing:.08em}
+.week h3{margin:0;font-size:1.05rem;flex:1;min-width:200px}
+.week .stage{font-size:.74rem;color:var(--muted);background:var(--surface-2);padding:2px 9px;border-radius:999px}
+.week p{margin:8px 0 0;color:var(--muted);font-size:.92rem}
+.week ul{margin:10px 0 0;padding-left:20px;color:var(--muted);font-size:.9rem}
+.week li{margin:3px 0}
+.badge{display:inline-block;font-size:.72rem;padding:2px 8px;border-radius:999px;margin-left:8px}
+.badge.done{background:var(--accent-soft);color:var(--accent)}
+
+table{width:100%;border-collapse:collapse;font-size:.92rem;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600;font-size:.86rem}
+tr:last-child td{border-bottom:none}
+
+.note{background:var(--accent-soft);border-radius:var(--radius);padding:18px 20px;margin-top:20px;font-size:.93rem}
+.note strong{color:var(--accent)}
+
+footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;text-align:center}
+.themebtn{
+  position:fixed;top:14px;right:14px;z-index:9;border:1px solid var(--line);
+  background:var(--surface);color:var(--muted);border-radius:999px;
+  padding:6px 14px;font-size:.8rem;cursor:pointer;font-family:inherit
+}
+@media(max-width:600px){ header.hero{padding:52px 16px 36px} }
+</style>
+</head>
+<body>
+<button class="themebtn" id="tbtn">☾ 深色</button>
+
+<header class="hero">
+  <span class="kicker">12 週 · 繁體中文 · 零技術背景可上</span>
+  <h1>AI PM 經理人班</h1>
+  <p class="lead">你不需要會寫程式，也能成為稱職的 AI 產品經理。<br>這門課教的是判斷、提問與帶團隊的能力。</p>
+</header>
+
+<div class="wrap">
+
+  <div class="facts">
+    <div class="fact"><div class="n">12</div><div class="l">週課程</div></div>
+    <div class="fact"><div class="n">4</div><div class="l">學習階段</div></div>
+    <div class="fact"><div class="n">5</div><div class="l">份結業產出</div></div>
+    <div class="fact"><div class="n">3–5</div><div class="l">每週投入小時</div></div>
+  </div>
+
+  <h2 class="sec">為什麼現在需要這門課</h2>
+  <p class="sub">AI 沒有讓 PM 的核心能力過時，但它改變了三件事。</p>
+  <div class="pillars">
+    <div class="pillar">
+      <h3>做出來的成本大幅下降</h3>
+      <p>原本三週的原型，現在可能三小時。瓶頸從「能不能做」變成「該不該做」。</p>
+    </div>
+    <div class="pillar">
+      <h3>不確定性被拉高</h3>
+      <p>AI 的輸出是機率性的。傳統軟體「寫什麼做什麼」的假設不再成立。</p>
+    </div>
+    <div class="pillar">
+      <h3>PM 的邊界往兩端拉開</h3>
+      <p>往下更靠近技術可行性，往上更靠近商業與倫理判斷。中間那層被壓縮了。</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>貫穿全課的三個提問：</strong>這個問題適合用 AI 解嗎？AI 做錯的時候誰承擔？導入之後怎麼證明它有價值？
+  </div>
+
+  <h2 class="sec">12 週課程地圖</h2>
+  <p class="sub">點選階段篩選週次。</p>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-s="all">全部</button>
+    <button class="tab" role="tab" aria-selected="false" data-s="1">一 · 基礎認知</button>
+    <button class="tab" role="tab" aria-selected="false" data-s="2">二 · 工具應用</button>
+    <button class="tab" role="tab" aria-selected="false" data-s="3">三 · 軟性技能</button>
+    <button class="tab" role="tab" aria-selected="false" data-s="4">四 · 整合應用</button>
+  </div>
+
+  <div class="weeks" id="weeks"></div>
+
+  <h2 class="sec">評量方式</h2>
+  <p class="sub">重實作，不重字數。</p>
+  <table>
+    <thead><tr><th>項目</th><th>說明</th><th>佔比</th></tr></thead>
+    <tbody>
+      <tr><td>每週作業</td><td>W01–W11 每週 1–2 份實作</td><td>40%</td></tr>
+      <tr><td>階段小結</td><td>每階段一頁式反思，共 4 次</td><td>15%</td></tr>
+      <tr><td>課堂參與</td><td>案例討論與同儕回饋</td><td>15%</td></tr>
+      <tr><td>期末提案</td><td>W12 完整提案與答辯</td><td>30%</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sec">結業時你會帶走</h2>
+  <p class="sub">五份可以直接用在工作上的產出。</p>
+  <table>
+    <tbody>
+      <tr><td>個人 PM 提示範本庫</td><td>W04</td></tr>
+      <tr><td>使用者痛點分析報告</td><td>W05</td></tr>
+      <tr><td>完整 PRD 與可點擊原型</td><td>W06</td></tr>
+      <tr><td>AI 產品指標儀表板規劃</td><td>W07</td></tr>
+      <tr><td>完整的 AI 產品商業提案</td><td>W12</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sec">教材使用方式</h2>
+  <p class="sub">每週兩份教材，用途不同。</p>
+  <div class="pillars">
+    <div class="pillar">
+      <h3>HTML 互動教材</h3>
+      <p>課前或課堂使用。含分頁導覽、案例卡片、自我檢驗互動，適合第一次接觸、快速建立整體圖像。</p>
+    </div>
+    <div class="pillar">
+      <h3>Markdown 自學指南</h3>
+      <p>課後深度閱讀與離線複習。內容更完整（每週 8,000 字以上），適合消化細節與日後查閱。</p>
+    </div>
+  </div>
+
+  <footer>
+    AI PM 經理人班 · 課程概述 · v1.0 · 2026-09-18
+  </footer>
+</div>
+
+<script>
+const DATA = [
+ {n:1,s:1,t:"AI 時代的 PM：角色重新定義",done:true,
+  d:"拆掉對 AI 的錯誤期待，重新定位 PM 的價值所在。",
+  p:["傳統 PM vs AI PM 的 5 個差異","AI 如何改變產品開發節奏","PM 與工程師的邊界消失","新時代 PM 最該練的兩件事"]},
+ {n:2,s:1,t:"看懂 AI：從機器學習到生成式 AI",
+  d:"用日常語言理解 AI 的運作方式，不碰數學。",
+  p:["AI / ML / DL / LLM 的包含關係","模型為什麼會猜錯","資料品質如何決定體驗","生成式 AI 的三種產品型態"]},
+ {n:3,s:1,t:"AI 可行性判斷：什麼能做、什麼做不到",
+  d:"一套檢核表，判斷想法該不該做。",
+  p:["AI 可行性四問","容錯度光譜","AI 產品的真實成本結構","基準線思維"]},
+ {n:4,s:2,t:"提示工程基礎：把需求講清楚",
+  d:"提示能力其實就是需求定義能力。",
+  p:["提示五要素框架","一個提示的 4 次迭代","提示範本化","提示工程的極限"]},
+ {n:5,s:2,t:"用 AI 做使用者研究與需求探索",
+  d:"加速研究流程，但守住不能跨的紅線。",
+  p:["準備、分析、彙整三環節","從逐字稿到核心痛點","合成使用者的價值與危險","研究倫理與資料處理"]},
+ {n:6,s:2,t:"用 AI 寫 PRD 與做產品原型",
+  d:"從一句話到可點擊原型的完整流程。",
+  p:["PRD 的骨架","AI 寫規格的三個盲點","從文字到互動原型","原型的目的是淘汰想法"]},
+ {n:7,s:2,t:"用 AI 做資料分析與決策支援",
+  d:"不寫 SQL 也能自己做分析。",
+  p:["讓 AI 當你的分析助理","離線指標 vs 線上指標","幻覺率、拒答率、人工接手率","相關不等於因果"]},
+ {n:8,s:3,t:"跨職能溝通：和工程師、資料團隊對話",
+  d:"問出有效的技術問題，而不是被三個字擋回來。",
+  p:["三種語言的轉譯","有效提問清單","技術債與模型債","效果不如預期時的對話"]},
+ {n:9,s:3,t:"AI 倫理、風險與治理（經理人視角）",
+  d:"PM 是風險的第一道防線，不是法遵部門。",
+  p:["偏誤從哪裡來","隱私的三道防線","幻覺的產品對策","人在迴路的介入點設計"]},
+ {n:10,s:3,t:"團隊導入 AI：變革管理與績效衡量",
+  d:"抗拒的真正來源不是不會用，是怕被取代。",
+  p:["試點 → 擴散 → 制度化","處理職涯焦慮","衡量什麼才有意義","避免形式主義"]},
+ {n:11,s:4,t:"AI 產品的商業模式與 ROI 評估",
+  d:"準備好回答「所以這值多少錢」。",
+  p:["AI 產品的單位經濟學","三種定價模型","誠實版的 ROI 試算","護城河到底在哪"]},
+ {n:12,s:4,t:"期末專案：從 0 到 1 的 AI 產品提案",
+  d:"整合全課所學，做出一份能爭取資源的提案。",
+  p:["問題定義與可行性評估","規格、原型與指標計畫","風險治理與導入路線圖","商業論證與答辯"]}
+];
+const STAGE = {1:"一 · 基礎認知",2:"二 · 工具應用",3:"三 · 軟性技能",4:"四 · 整合應用"};
+const COLOR = {1:"var(--s1)",2:"var(--s2)",3:"var(--s3)",4:"var(--s4)"};
+
+const box = document.getElementById('weeks');
+box.innerHTML = DATA.map(w => `
+  <article class="week" data-s="${w.s}" style="--st:${COLOR[w.s]}">
+    <div class="top">
+      <span class="no">W${String(w.n).padStart(2,'0')}</span>
+      <h3>${w.t}${w.done?'<span class="badge done">教材已完成</span>':''}</h3>
+      <span class="stage">${STAGE[w.s]}</span>
+    </div>
+    <p>${w.d}</p>
+    <ul>${w.p.map(x=>`<li>${x}</li>`).join('')}</ul>
+  </article>`).join('');
+
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected','false'));
+    btn.setAttribute('aria-selected','true');
+    const s = btn.dataset.s;
+    document.querySelectorAll('.week').forEach(el=>{
+      el.hidden = !(s==='all' || el.dataset.s===s);
+    });
+  });
+});
+
+const tb = document.getElementById('tbtn');
+function cur(){ return document.documentElement.getAttribute('data-theme')
+  || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); }
+function paint(){ tb.textContent = cur()==='dark' ? '☀ 淺色' : '☾ 深色'; }
+tb.addEventListener('click',()=>{
+  document.documentElement.setAttribute('data-theme', cur()==='dark'?'light':'dark');
+  paint();
+});
+paint();
+</script>
+</body>
+</html>

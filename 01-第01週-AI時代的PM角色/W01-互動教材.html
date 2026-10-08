@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>W01 · AI 時代的 PM — 互動教材</title>
+<style>
+:root{
+  --bg:#f7f6f3; --surface:#ffffff; --surface-2:#f0eee9;
+  --text:#1f1e1c; --muted:#6b675f; --line:#e2dfd8;
+  --accent:#b4563a; --accent-soft:#f5e7e1;
+  --ok:#3d6b5c; --ok-soft:#e3efe9;
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16151a; --surface:#1f1e25; --surface-2:#282730;
+    --text:#ece9e4; --muted:#a09b93; --line:#343340;
+    --accent:#e28468; --accent-soft:#3a2a26;
+    --ok:#6fb39a; --ok-soft:#23332d;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16151a; --surface:#1f1e25; --surface-2:#282730;
+  --text:#ece9e4; --muted:#a09b93; --line:#343340;
+  --accent:#e28468; --accent-soft:#3a2a26;
+  --ok:#6fb39a; --ok-soft:#23332d;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+ font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;
+ line-height:1.8;-webkit-font-smoothing:antialiased}
+
+/* progress */
+#bar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--accent);z-index:20;transition:width .25s}
+
+header.top{
+  position:sticky;top:0;z-index:10;background:var(--surface);
+  border-bottom:1px solid var(--line);padding:12px 16px;
+}
+.top-in{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top .w{font-size:.75rem;font-weight:700;letter-spacing:.12em;color:var(--accent)}
+.top h1{font-size:1rem;margin:0;flex:1;min-width:180px;font-weight:600}
+.themebtn{border:1px solid var(--line);background:var(--surface-2);color:var(--muted);
+ border-radius:999px;padding:5px 12px;font-size:.78rem;cursor:pointer;font-family:inherit}
+
+nav.steps{max-width:960px;margin:0 auto;padding:14px 16px 0;display:flex;gap:6px;flex-wrap:wrap}
+nav.steps button{
+  border:1px solid var(--line);background:var(--surface);color:var(--muted);
+  padding:7px 14px;border-radius:999px;cursor:pointer;font-size:.85rem;font-family:inherit;transition:.15s}
+nav.steps button:hover{color:var(--text)}
+nav.steps button[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+
+main{max-width:960px;margin:0 auto;padding:8px 16px 90px}
+section[hidden]{display:none}
+section{animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+h2{font-size:1.5rem;margin:32px 0 6px;letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:28px 0 8px}
+p{margin:12px 0}
+.muted{color:var(--muted)}
+.lead{font-size:1.05rem;color:var(--muted);margin-bottom:8px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin:16px 0}
+.card.accent{border-left:4px solid var(--accent)}
+.card h3{margin-top:0}
+
+table{width:100%;border-collapse:collapse;font-size:.92rem;background:var(--surface);
+ border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin:16px 0}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--surface-2);font-weight:600;font-size:.85rem}
+tr:last-child td{border-bottom:none}
+
+.concepts{display:grid;gap:12px}
+.acc{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.acc>button{
+  width:100%;text-align:left;background:none;border:none;padding:16px 20px;cursor:pointer;
+  font-family:inherit;color:var(--text);font-size:1rem;font-weight:600;display:flex;gap:12px;align-items:center}
+.acc>button .idx{color:var(--accent);font-size:.8rem;font-weight:700;letter-spacing:.08em}
+.acc>button .ar{margin-left:auto;color:var(--muted);transition:.2s}
+.acc[open-state="1"]>button .ar{transform:rotate(90deg)}
+.acc .body{padding:0 20px 18px;border-top:1px solid var(--line);color:var(--text)}
+.acc .body[hidden]{display:none}
+
+.cases{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.case{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.case .tag{font-size:.72rem;color:var(--accent);background:var(--accent-soft);padding:3px 10px;border-radius:999px}
+.case h3{margin:12px 0 6px;font-size:1.05rem}
+.case p{font-size:.92rem;color:var(--muted);margin:8px 0}
+.case .take{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:.88rem}
+.case .take b{color:var(--accent)}
+
+/* quiz */
+.q{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin:14px 0}
+.q .qt{font-weight:600;margin-bottom:12px}
+.opts{display:grid;gap:8px}
+.opt{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:11px 14px;
+ cursor:pointer;font-family:inherit;font-size:.93rem;text-align:left;color:var(--text);transition:.15s}
+.opt:hover{border-color:var(--accent)}
+.opt.right{background:var(--ok-soft);border-color:var(--ok);color:var(--text)}
+.opt.wrong{background:var(--accent-soft);border-color:var(--accent);opacity:.75}
+.opt:disabled{cursor:default}
+.exp{margin-top:12px;padding:12px 14px;background:var(--surface-2);border-radius:10px;font-size:.9rem;color:var(--muted)}
+.exp[hidden]{display:none}
+.score{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+ padding:16px 20px;margin-top:16px;font-weight:600}
+
+ul,ol{padding-left:22px}
+li{margin:6px 0}
+.hw{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);
+ border-radius:var(--radius);padding:20px 22px;margin:16px 0}
+.hw h3{margin-top:0}
+.pill{display:inline-block;font-size:.72rem;background:var(--surface-2);color:var(--muted);
+ padding:2px 10px;border-radius:999px;margin-left:8px}
+
+.navbtns{display:flex;justify-content:space-between;gap:12px;margin-top:40px}
+.navbtns button{border:1px solid var(--line);background:var(--surface);color:var(--text);
+ padding:10px 20px;border-radius:999px;cursor:pointer;font-family:inherit;font-size:.9rem}
+.navbtns button:disabled{opacity:.35;cursor:default}
+.navbtns button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+
+footer{max-width:960px;margin:0 auto;padding:24px 16px 60px;border-top:1px solid var(--line);
+ color:var(--muted);font-size:.85rem;text-align:center}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+
+<header class="top">
+  <div class="top-in">
+    <span class="w">WEEK 01</span>
+    <h1>AI 時代的 PM：角色重新定義</h1>
+    <button class="themebtn" id="tbtn">☾ 深色</button>
+  </div>
+</header>
+
+<nav class="steps" id="steps"></nav>
+
+<main>
+
+<!-- 0 導論 -->
+<section data-s="0">
+  <h2>開場：一個讓人不太舒服的問題</h2>
+  <p class="lead">先別急著往下滑，花三十秒想一下這題。</p>
+
+  <div class="card accent">
+    <p>你是一家線上教育公司的產品經理。明天早上，執行長把你叫進辦公室說：<b>「我們要做一個 AI 家教。你來負責。」</b></p>
+    <p class="muted" style="margin-bottom:0">你會先做什麼？</p>
+  </div>
+
+  <p>大部分人的第一反應是：查競品、寫需求、找工程師評估、排時程。這些都對，但都不是最重要的。</p>
+
+  <p><b>最重要的第一件事，是判斷這句話裡的「AI 家教」到底是什麼。</b>是一個會回答問題的聊天機器人？一個會出題的練習系統？還是一個能看出學生哪裡沒懂的診斷工具？</p>
+
+  <p>這三件事的技術難度、資料需求、風險程度天差地遠——但在執行長口中，它們都叫「AI 家教」。</p>
+
+  <div class="card">
+    <h3>本週的核心命題</h3>
+    <p style="margin-bottom:0">在 AI 專案裡，<b>定義問題的成本比執行的成本更高，錯誤的定義也更難挽回</b>。所以第 1 週我們先搞清楚：你這個角色，到底變了什麼。</p>
+  </div>
+
+  <h3>本週學完你會能夠</h3>
+  <ul>
+    <li>說出傳統 PM 與 AI PM 在工作重心上的五個具體差異</li>
+    <li>描述「原型成本崩塌」如何改變產品開發的節奏</li>
+    <li>解釋 PM 與工程師邊界模糊的現象，以及 PM 價值的三個落點</li>
+    <li>明確知道新時代 PM 最該練的兩件事，並開始練習</li>
+    <li>用三個真實案例向別人說明 AI 對產品思維的改變</li>
+  </ul>
+</section>
+
+<!-- 1 核心概念 -->
+<section data-s="1" hidden>
+  <h2>四個核心概念</h2>
+  <p class="lead">點開每一個展開細節。建議依序閱讀。</p>
+  <div class="concepts" id="concepts"></div>
+</section>
+
+<!-- 2 案例 -->
+<section data-s="2" hidden>
+  <h2>三個產業案例</h2>
+  <p class="lead">不是要你記住這些公司，是要你記住它們示範的產品判斷。</p>
+  <div class="cases" id="cases"></div>
+
+  <div class="card accent" style="margin-top:24px">
+    <h3>三個案例的共同主線</h3>
+    <p style="margin-bottom:0">技術給你<b>能力</b>，不給你<b>答案</b>。個人化的顆粒度、AI 何時該說話、「完成」如何定義——全部是產品判斷，不是技術判斷。這正是 PM 在 AI 時代不會消失的理由。</p>
+  </div>
+</section>
+
+<!-- 3 自我檢驗 -->
+<section data-s="3" hidden>
+  <h2>自我檢驗</h2>
+  <p class="lead">選完會立刻看到解析。答錯不扣分，但請先認真想過再點。</p>
+  <div id="quiz"></div>
+  <div class="score" id="score">尚未作答</div>
+</section>
+
+<!-- 4 作業 -->
+<section data-s="4" hidden>
+  <h2>實踐作業</h2>
+  <p class="lead">兩份作業，建議本週內完成。重實作，不重字數。</p>
+
+  <div class="hw">
+    <h3>作業 1 · AI 產品觀察日記 <span class="pill">600–900 字</span></h3>
+    <p><b>目標</b>：訓練你辨識 AI 在真實產品中的存在形式，以及它解決了什麼問題。</p>
+    <p><b>做法</b>：挑三個你每天都會用的產品（通訊軟體、串流、地圖、電商、銀行 App、公司內部系統皆可），每個回答四題：</p>
+    <ol>
+      <li><b>你觀察到哪裡有 AI？</b>具體指出功能，不要只說「它很智慧」。</li>
+      <li><b>它解決了什麼問題？</b>沒有這個功能，使用者會有什麼不便？</li>
+      <li><b>它什麼時候會出錯？</b>你遇過它判斷錯誤嗎？出錯時產品怎麼處理？</li>
+      <li><b>如果你是 PM，你會怎麼改？</b>一個具體改進點就好。</li>
+    </ol>
+    <p class="muted" style="margin-bottom:0"><b>評分重點在第 3、4 題。</b>能看出 AI 何時會出錯、產品如何接住錯誤，比列舉功能有價值得多。</p>
+  </div>
+
+  <div class="hw">
+    <h3>作業 2 · 我的 PM 能力盤點 <span class="pill">表格 + 300 字</span></h3>
+    <p><b>目標</b>：找出自己的能力缺口，作為後續 11 週的學習重點。</p>
+    <p><b>做法</b>：每項自評 1–5 分（1＝完全沒接觸，5＝能教別人），並寫下理由。</p>
+    <table>
+      <thead><tr><th>能力</th><th>說明</th><th style="width:70px">自評</th></tr></thead>
+      <tbody>
+        <tr><td>問題定義</td><td>能把模糊需求拆解成明確、可驗證的問題</td><td></td></tr>
+        <tr><td>技術素養</td><td>理解 AI 的能力邊界，能問出有效的技術問題</td><td></td></tr>
+        <tr><td>提問品質</td><td>能把需求向 AI 或團隊講清楚，得到想要的產出</td><td></td></tr>
+        <tr><td>資料判讀</td><td>能看懂指標、辨識統計誤讀、設計評估方案</td><td></td></tr>
+        <tr><td>風險意識</td><td>能辨識偏誤、隱私、幻覺、濫用並設計對策</td><td></td></tr>
+        <tr><td>跨職能溝通</td><td>能在商業、產品、技術三種語言間轉譯</td><td></td></tr>
+        <tr><td>商業論證</td><td>能做出誠實的 ROI 試算並回應高層質疑</td><td></td></tr>
+        <tr><td>變革管理</td><td>能帶領團隊導入新工作方式並處理抗拒</td><td></td></tr>
+      </tbody>
+    </table>
+    <p class="muted" style="background:var(--surface-2);border-radius:10px;padding:12px 14px"><b>先說一句</b>：現在多數項目落在 1–2 分是正常的，而且完全符合預期——這門課就是為了填這些格子而開的。<b>這份表的用途是 12 週後的對照組，不是評價你現在的能力。</b></p>
+    <p><b>然後</b>：圈出最低的三項，各寫下「12 週後希望變成幾分、打算在課程中特別注意什麼」。</p>
+    <p class="muted" style="margin-bottom:0">把這份盤點存起來。<b>第 12 週會拿出來重新自評，對照進步。</b></p>
+  </div>
+</section>
+
+<!-- 5 延伸 -->
+<section data-s="5" hidden>
+  <h2>延伸思考</h2>
+  <p class="lead">沒有標準答案，適合寫下來或跟同儕討論。</p>
+
+  <div class="card"><b>一、</b>如果三年後 AI 能自動完成 PM 八成的日常工作（寫規格、做分析、整理回饋），剩下的兩成是什麼？你現在有沒有在累積那兩成的能力？</div>
+  <div class="card"><b>二、</b>「AI 讓每個人都能做產品」——這是機會還是威脅？對大公司的 PM 和獨立創業者，答案一樣嗎？</div>
+  <div class="card"><b>三、</b>你公司裡有沒有正在用 AI「解決一個其實不存在的問題」？如果有，為什麼沒有人喊停？如果要喊停，你會怎麼說？</div>
+  <div class="card"><b>四、</b>PM 的價值在「問題品質、取捨責任、跨界理解」。哪一項最難被 AI 取代？哪一項最容易？你的答案會如何影響你接下來的學習重點？</div>
+
+  <h2>推薦閱讀</h2>
+  <table>
+    <thead><tr><th>方向</th><th>建議</th></tr></thead>
+    <tbody>
+      <tr><td>產品思維基礎</td><td>Marty Cagan《Inspired》（矽谷最夯‧產品專案管理全書）；Teresa Torres《Continuous Discovery Habits》</td></tr>
+      <tr><td>AI 能力邊界</td><td>主流模型供應商官方文件的「能力與限制」章節，比二手評論可靠，建議每季重讀</td></tr>
+      <tr><td>實務案例</td><td>追蹤 2–3 位第一線實務工作者的踩坑紀錄；優先看與你同產業的案例</td></tr>
+    </tbody>
+  </table>
+  <div class="card accent">
+    <h3>閱讀比例建議</h3>
+    <p style="margin-bottom:0">AI 領域資訊半衰期很短。<b>兩成時間</b>讀原理性、長效的產品管理經典；<b>八成時間</b>追蹤最近三個月的實務案例。一年以上的技術評論基本可以跳過。</p>
+  </div>
+
+  <h2>下週預告</h2>
+  <div class="card">
+    <h3>第 2 週 · 看懂 AI：從機器學習到生成式 AI</h3>
+    <p>下週處理一個很多經理人不好意思問的問題：<b>AI 到底怎麼運作？</b>我們不碰數學，但會把 AI／ML／DL／LLM 的關係講清楚，並解釋「模型為什麼會猜錯」「為什麼資料品質直接決定體驗」。</p>
+    <p class="muted" style="margin-bottom:0"><b>課前準備</b>：找一個你公司內部正在用、或打算用 AI 的流程，下週上課會用到。</p>
+  </div>
+</section>
+
+  <div class="navbtns">
+    <button id="prev">← 上一節</button>
+    <button id="next" class="primary">下一節 →</button>
+  </div>
+</main>
+
+<footer>AI PM 經理人班 · 第 1 週互動教材 · v1.1 · 2026-10-02（補 P0-1 語彙對照表、P1-6 減壓說明）<br>搭配 <b>W01-自學指南.md</b> 服用效果更佳</footer>
+
+<script>
+/* ---------- 內容資料 ---------- */
+const STEPS = ["導論","核心概念","產業案例","自我檢驗","實踐作業","延伸與預告"];
+
+const CONCEPTS = [
+{ i:"概念 01", t:"傳統 PM vs AI PM：從管流程到管不確定性", h:`
+<p>有一種說法是「AI 讓 PM 這個職位消失」。這個判斷太粗糙了。</p>
+<p>PM 的核心工作一直是三件事：<b>定義問題、排序優先級、協調資源</b>。在 AI 時代不但沒消失，重要性反而上升——因為當「做東西」變便宜，決定「做什麼」的責任就變重。</p>
+<table>
+<thead><tr><th>面向</th><th>傳統 PM</th><th>AI PM</th></tr></thead>
+<tbody>
+<tr><td>輸出的確定性</td><td>規格寫清楚，照做，結果可預期</td><td>同一輸入可能得到不同輸出，要定義「多好算夠好」</td></tr>
+<tr><td>驗收標準</td><td>功能有沒有做出來（二元）</td><td>品質好到什麼程度（連續光譜），需要指標與門檻</td></tr>
+<tr><td>失敗的定義</td><td>Bug，可以修</td><td>模型表現不佳——可能是資料、目標設定，或這題本來就不該用 AI</td></tr>
+<tr><td>與資料的關係</td><td>資料是產品的產物</td><td>資料是產品的原料</td></tr>
+<tr><td>迭代節奏</td><td>週期以週計，可預測</td><td>週期可能以小時計，但收斂慢</td></tr>
+</tbody></table>
+<div class="card accent"><h3>只記一條的話</h3>
+<p><b>傳統軟體的輸出是確定的，AI 的輸出是機率性的。</b></p>
+<p style="margin-bottom:0">這一條會滲透到所有事情：驗收不能說「做完了」只能說「目前達到這個水準」；規格不能只寫「系統應回答問題」還要寫「答不出來時怎麼辦」；報告要學會講信心區間；風險設計必須預設它會出錯。</p></div>
+<h3>如果你是專案管理背景：三欄語彙對照</h3>
+<p>這門課通篇使用產品管理的語言（PRD、使用者故事、驗收條件）。如果你熟悉的是 WBS、里程碑、風險登錄簿，先看這張對照表——<b>兩套語言講的是相近的事，只是切角不同。</b>W08（跨職能溝通）會再用到一次。</p>
+<table>
+<thead><tr><th>你熟悉的（專案管理）</th><th>本課程會用的（產品管理）</th><th>在 AI 專案裡多了什麼</th></tr></thead>
+<tbody>
+<tr><td><b>專案章程</b>：這個專案要幹嘛、誰批准</td><td><b>產品需求文件（PRD）</b>：要做什麼、為誰做、做到什麼程度算完成</td><td>多一段「資料從哪來、品質如何、誰維護」——<b>沒有這段的 PRD 在 AI 專案裡是不完整的</b></td></tr>
+<tr><td><b>工作分解結構（WBS）</b>：拆成可執行的工作包</td><td><b>使用者故事 + 功能拆解</b>：從使用者角度拆，不是從工作量角度拆</td><td>多一層拆解：每步要標出是規則式、判別式、生成式，還是只能人做</td></tr>
+<tr><td><b>里程碑</b>：時間點上的交付</td><td><b>產品階段</b>：探索 → 驗證 → 上線 → 成長</td><td>AI 專案的第一個里程碑常常是「<b>資料盤點完成</b>」，不是「開發完成」</td></tr>
+<tr><td><b>驗收標準</b>：功能做出來了沒（二元）</td><td><b>驗收條件</b>：做到什麼程度算完成</td><td>從二元變成光譜：要定義「多好算夠好」，還要定義「誰來評」</td></tr>
+<tr><td><b>需求變更控制</b>：變更走流程、評估影響</td><td><b>優先級排序</b>：持續重排，變更是常態不是例外</td><td>AI 專案的變更常來自「資料不如預期」，而不是客戶改需求</td></tr>
+<tr><td><b>風險登錄簿</b>：風險、機率、影響、對策</td><td><b>風險與治理設計</b>：偏誤、隱私、幻覺、濫用四大類</td><td>多一類專屬風險：<b>模型會過期</b>，要排定期重新檢視的責任人</td></tr>
+<tr><td><b>關鍵路徑</b>：決定總工期的那條鏈</td><td><b>瓶頸</b>：決定產品能不能成立的那一步</td><td>AI 專案的關鍵路徑常落在<b>資料取得與清理</b>，不是開發</td></tr>
+<tr><td><b>結案報告</b>：做完了，交付、歸檔</td><td><b>上線不是終點</b>：上線後才開始看真實指標</td><td>AI 產品上線是<b>維運的起點</b>：效果會衰退，要有人負責發現</td></tr>
+</tbody></table>
+<p><b>一句話總結</b>：專案管理問「做完了沒」，產品管理問「做對了沒」，AI 專案還要再問一句「<b>它現在還對嗎</b>」。</p>
+<p class="muted">完整名詞清單見 <b>00-課程大綱/名詞對照表.md</b>。讀到不懂的詞先查那裡。</p>
+<p class="muted"><b>給經理人的提醒：</b>用「做完沒」去追 AI 專案進度，會逼團隊給你假的確定性。改問「目前準確率多少、卡在哪個環節」，才問得到真話。</p>`},
+
+{ i:"概念 02", t:"AI 如何改變產品開發：原型成本崩塌與連鎖效應", h:`
+<p>傳統產品開發有一個隱形規則：<b>因為做東西很貴，所以我們要想很久再做。</b>整套流程（研究→規格→設計→評審→開發→測試）存在的理由，就是要在昂貴的開發發生前降低做錯的機率。</p>
+<p>AI 把「做一個能跑的東西」壓到接近零成本。以前三週、兩個工程師的原型，現在可能三小時就有一個能點擊的版本。</p>
+<p>這件事本身不稀奇，稀奇的是它的連鎖效應。</p>
+
+<h3>效應一 · 決策點往前移</h3>
+<p>以前「要不要做」是看完規格文件才決定；現在可以看完原型再決定。文件寫「使用者可以快速找到資料」，跟你親手點一遍發現「這流程有夠難用」，是兩種資訊品質。</p>
+<p class="muted"><b>實務意義</b>：把更多討論從「會議室裡爭論規格」搬到「桌上擺三個原型，大家點點看」。</p>
+
+<h3>效應二 · 想法的淘汰率應該上升</h3>
+<p>做原型變便宜，就該做更多、丟更多。但這裡有個心理陷阱——人對自己花時間做的東西會有感情。</p>
+<p><b>原型的目的是淘汰想法，不是保留想法。</b>做了五個丟掉四個，這是成功，不是浪費。</p>
+<p class="muted"><b>實務意義</b>：建立一個「原型墳場」，記錄丟掉的想法與理由。這份記錄往往比留下來的那個原型更有價值。</p>
+
+<h3>效應三 · 瓶頸從「能不能做」變成「該不該做」</h3>
+<p>當任何人都能在一個下午做出能動的東西，市場就會充滿「能動但沒人要用」的東西。稀缺的不再是製造能力，而是<b>判斷力</b>。</p>
+<p class="muted"><b>實務意義</b>：你花在「想清楚」的時間比例應該提高，而不是降低。</p>
+
+<div class="card accent"><h3>一個必須澄清的誤解</h3>
+<p style="margin-bottom:0">「AI 讓開發變快」不等於「AI 讓產品做得更好」。快速做出的原型通常也快速把問題遮住了——一個看起來很順的 demo，背後可能有十個沒處理的邊界案例。AI PM 的重要能力，就是看著漂亮的 demo 問出「如果輸入是空的呢」「它答錯時使用者怎麼知道」這種掃興但必要的問題。</p></div>`},
+
+{ i:"概念 03", t:"PM 與工程師的邊界正在消失", h:`
+<p>三年前，PM 想驗證一個想法：寫需求 → 排入 sprint → 等工程師有空 → 做出來 → 看結果，中間至少兩週。</p>
+<p>現在很多 PM 直接自己做。不是工程師不重要，而是<b>驗證型的工作</b>已經不需要工程師了。反過來，工程師也更多參與產品決策，因為 AI 幫他們處理掉大量重複實作。</p>
+
+<h3>這對你意味著什麼</h3>
+<p><b>壞消息</b>：如果你的價值主要是「把需求翻譯給工程師的人」，這個價值正在被壓縮——翻譯工作 AI 也做得不錯。</p>
+<p><b>好消息</b>：如果你的價值是「知道該解什麼問題的人」，這個價值正在上升。</p>
+
+<h3>PM 價值的三個落點</h3>
+<table><tbody>
+<tr><td><b>問題的品質</b></td><td>AI 很擅長回答問題，但不知道該問什麼。「使用者說要更快的馬」背後真正的需求是什麼——這個判斷很難外包。</td></tr>
+<tr><td><b>取捨的責任</b></td><td>AI 能列出十個方案的優劣，但「這季只做這一個，其他都不做」必須有人說出口並承擔後果。取捨的本質是承擔責任。</td></tr>
+<tr><td><b>跨界的理解</b></td><td>同時理解使用者情緒、技術限制、商業算計、法規紅線。單項 AI 可能比你懂，但四者綜合判斷目前仍是人的工作。</td></tr>
+</tbody></table>
+
+<div class="card accent"><h3>一個實務建議</h3>
+<p>不要因為邊界模糊就跑去學寫程式，也不要因為 AI 能做原型就放棄理解技術。</p>
+<p><b>中間路線</b>：學到「能問出好問題」的程度就夠。你不需要知道注意力機制怎麼算，但需要知道「這個模型的脈絡長度有多大」會如何影響功能設計。</p>
+<p style="margin-bottom:0"><b>判斷標準</b>：當工程師說「這做不到」，你有沒有辦法追問下去？有的話，你的技術理解就夠用了。</p></div>`},
+
+{ i:"概念 04", t:"新時代 PM 最該練的兩件事", h:`
+<h3>第一件 · 提問的品質</h3>
+<p>AI 是能力極強但完全被動的協作者，產出品質幾乎完全取決於你的輸入品質。</p>
+<p>更深一層：<b>「會提問」和「會定義需求」其實是同一件事。</b>能把問題向 AI 講清楚的人，通常也能把需求向工程師講清楚；對著 AI 只會說「幫我想想」的人，對著團隊大概也講不清楚。</p>
+<table>
+<thead><tr><th style="width:38%">弱提問</th><th>強提問</th></tr></thead>
+<tbody>
+<tr><td>「幫我分析這個市場」</td><td>「我要向不懂這產業的董事會說明台灣線上教育市場的競爭態勢。請用三個面向（玩家、定價、進入門檻）各寫 150 字，避免專有名詞，最後給一句話結論。」</td></tr>
+<tr><td>「這個功能怎麼做」</td><td>「我想做一個自動摘要客服對話的功能。使用者是客服主管，每天看 200 通對話。請列出三種技術路線，每種說明它在準確度、成本、上線時間上的取捨。」</td></tr>
+</tbody></table>
+<p class="muted"><b>怎麼練</b>：每次提問後回頭看它的回答哪裡不對，然後問自己「是我哪句話沒講清楚？」刻意加上<b>脈絡</b>（為什麼要）、<b>限制</b>（不能怎樣）、<b>格式</b>（要什麼形式）。</p>
+
+<h3>第二件 · 判斷的品質</h3>
+<p>當 AI 能生成十個方案，你的工作不是生成第十一個，而是<b>選出對的那一個並說明為什麼</b>。</p>
+<p>而且 AI 有一個危險特性：<b>它錯得很有說服力。</b>語氣自信、結構完整、引用看起來像真的。沒有獨立判斷力，你會被流暢的錯誤帶著走。</p>
+<ul>
+<li><b>建立基準線</b>：看到任何產出先問「不用 AI 的話，現況是什麼水準？」沒有基準線就無法判斷好壞。</li>
+<li><b>刻意找反例</b>：要求 AI「列出這個方案失敗的三種情境」。</li>
+<li><b>驗證關鍵事實</b>：凡會影響決策的數字、日期、來源，都自己查一次。</li>
+<li><b>留意自己的舒適感</b>：當答案讓你覺得「對，就是這樣」，特別要警覺——它可能只是迎合了你的既有想法。</li>
+</ul>
+<div class="card accent"><h3>判斷力的三個層次</h3>
+<p><b>事實層</b>：這資訊是真的嗎？（可查證，AI 還可以）<br>
+<b>邏輯層</b>：從這些事實能推出這結論嗎？（可推理，AI 有時跳步）<br>
+<b>價值層</b>：就算邏輯成立，我們該這麼做嗎？（需要立場，<b>基本上是你的責任</b>）</p>
+<p style="margin-bottom:0" class="muted">後面 11 週的所有工具與方法，都是在支撐這兩件事。</p></div>`}
+];
+
+const CASES = [
+{tag:"教育", t:"Duolingo — 個人化學習路徑",
+ body:`<p><b>難題</b>：每個學習者的弱點不同，但課程是統一的。有人文法好但聽力差，有人詞彙量大但不敢開口。傳統分級太粗，同一級裡差異仍大。</p>
+ <p><b>AI 帶來的改變</b>：從答題行為判斷弱點落在哪個知識點、動態調整難度、生成無限練習題（而非固定題庫）、提供低壓力的對話練習。</p>
+ <p><b>PM 要做的三個決策</b></p>
+ <ul><li><b>個人化到什麼顆粒度？</b>太粗沒效果，太細讓人覺得被監控，運算成本也上升。</li>
+ <li><b>AI 出的題誰把關？</b>全人工太貴，全自動風險太大，中間怎麼切？</li>
+ <li><b>怎麼衡量「學得更好」？</b>停留時間變長可能是卡住了；連續登入可能只是遊戲化有效。</li></ul>`,
+ take:"AI 讓「規模化的個人化」變得可能，但個人化的邊界、品質把關、成效衡量，全部是 PM 的工作。"},
+
+{tag:"內容創作", t:"AI 創作工具 — 從工具到協作者",
+ body:`<p><b>轉變</b>：過去的創作工具是純工具——你下指令，它執行，心智模型是「我是主導者，它是筆」。生成式 AI 讓工具開始「自己提出想法」，這改變了使用者與產品的關係。</p>
+ <p><b>三個產品思維轉變</b></p>
+ <ul>
+ <li><b>從「執行指令」到「提出我沒想到的」</b>：價值不只是省力，還包括啟發。但建議太多會變干擾——<b>什麼時候該說話、什麼時候該閉嘴</b>成了核心設計問題。</li>
+ <li><b>從「結果正確」到「過程可控」</b>：<b>控制感比自動化程度更重要。</b>「一鍵生成完美結果但無法微調」反而不如「生成七成然後讓你改」。</li>
+ <li><b>從「功能」到「信任」</b>：信任來自可預期性、透明度、出錯時的可挽回性——三者都要在設計上處理，不是靠行銷話術。</li>
+ </ul>
+ <p class="muted">額外難題：AI 協作內容的署名與責任歸屬；能力展示的尺度（太強讓人覺得「那還要我做什麼」，太弱又賣不動）。</p>`,
+ take:"當產品從工具變成協作者，設計重心從「功能完整度」轉移到「互動關係的設計」。這是 PM 的主場。"},
+
+{tag:"軟體開發", t:"GitHub Copilot — 重新定義「完成」",
+ body:`<p><b>情境</b>：工程師不再逐行敲出所有程式碼，而是描述意圖、審閱建議、修改整合。</p>
+ <p><b>對 PM 最重要的啟示</b>：重點不是「工程師變快了」，而是——<b>當 AI 進入專業工作流，「完成」的定義必須重寫。</b></p>
+ <p>以前「這功能寫完了」意思很明確；現在要追問：這段程式碼是誰寫的、誰理解它？出問題誰能修？有沒有人真的看懂它在做什麼？</p>
+ <p><b>速度上升的同時，理解深度可能下降</b>，而這個缺口要到出事那天才會浮現。</p>
+ <p><b>這個模式會重演</b>：AI 幫忙寫的法律文件，誰對條款負責？AI 做的財務分析，誰驗證假設？AI 寫的產品規格，誰確認沒漏掉關鍵情境？</p>
+ <p><b>PM 的實務動作</b>：在任何 AI 輔助流程裡畫出三件事——AI 做什麼、人做什麼、<b>交接點在哪</b>（人介入時看得到足夠資訊嗎）。</p>`,
+ take:"當 AI 進入專業工作流，PM 必須重新定義「完成」，並明確指出人的責任落在哪個環節。"}
+];
+
+const QUIZ = [
+{q:"傳統 PM 與 AI PM 最根本的差異是什麼？",
+ o:["AI PM 需要會寫程式，傳統 PM 不用",
+    "AI PM 管理機率性的輸出，傳統 PM 管理確定性的執行",
+    "AI PM 的工作比較新，還沒有標準流程",
+    "AI PM 不需要做使用者研究"],
+ a:1,
+ e:"傳統軟體「寫什麼做什麼」，AI 的輸出是機率性的。這一條差異會往下滲透到驗收標準、規格寫法、溝通方式與風險設計。會不會寫程式不是關鍵區別。"},
+
+{q:"「原型成本崩塌」帶來的連鎖效應中，以下哪一項是正確的？",
+ o:["想法的淘汰率應該下降，因為做得快就該多留一些",
+    "決策點往後移，因為有更多時間評估",
+    "瓶頸從「能不能做」變成「該不該做」",
+    "規格文件變得更重要，因為原型不可靠"],
+ a:2,
+ e:"當任何人一個下午就能做出能動的東西，製造能力不再稀缺，判斷力才是。相對地，淘汰率應該「上升」（原型的目的是淘汰想法），決策點則是「往前移」（從看文件決策變成看原型決策）。"},
+
+{q:"當工程師說「這個做不到」，技術理解足夠的 PM 會怎麼做？",
+ o:["自己學寫程式，做給他看",
+    "接受結論，改做別的功能",
+    "追問限制的具體來源：是資料不夠、模型能力不足、還是時程不夠",
+    "找另一個工程師問同樣的問題"],
+ a:2,
+ e:"「做不到」通常是「在這些條件下做不到」的簡化。追問下去才知道：降低準確度要求做得到嗎？有沒有退而求其次的版本？能不能問出這些，就是技術理解夠不夠用的判準。"},
+
+{q:"為什麼說「會提問」和「會定義需求」其實是同一件事？",
+ o:["因為 AI 和工程師一樣需要休息時間",
+    "因為兩者都要把模糊意圖轉成明確的脈絡、限制與期待格式",
+    "因為提問可以取代寫規格文件",
+    "因為 AI 會自動把提問轉成需求文件"],
+ a:1,
+ e:"對 AI 講不清楚的人，對團隊通常也講不清楚。提問是需求定義能力的即時練習場——每次 AI 給錯答案，都是一次「我哪句話沒說清楚」的檢討機會。"},
+
+{q:"AI「錯得很有說服力」，以下哪個不是有效的對策？",
+ o:["建立基準線，先知道不用 AI 時的水準",
+    "要求 AI 列出這個方案失敗的三種情境",
+    "看到答案讓自己覺得「對，就是這樣」時提高警覺",
+    "多問 AI 幾次，如果答案一致就採信"],
+ a:3,
+ e:"同一個模型重複回答一致，只代表它穩定地持有同一個觀點，不代表正確——它可能穩定地錯。真正的對策是外部查證、主動找反例、以及對「太舒服的答案」保持警覺。"},
+
+{q:"Copilot 案例對 PM 最重要的啟示是什麼？",
+ o:["工程師的產能提升，可以縮短專案時程",
+    "PM 也應該學會寫程式",
+    "當 AI 進入專業工作流，「完成」的定義必須重寫",
+    "程式碼品質不再重要，能跑就好"],
+ a:2,
+ e:"速度上升的同時理解深度可能下降。能跑不代表有人看懂它、能維護它。PM 要明確劃出 AI 做什麼、人做什麼、交接點在哪，並把「有人真正理解」納入完成的定義。"}
+];
+
+/* ---------- 渲染 ---------- */
+const stepsBox = document.getElementById('steps');
+stepsBox.innerHTML = STEPS.map((s,i)=>
+  `<button data-i="${i}" aria-current="${i===0}">${i+1}. ${s}</button>`).join('');
+
+document.getElementById('concepts').innerHTML = CONCEPTS.map((c,i)=>`
+ <div class="acc" open-state="0">
+   <button data-i="${i}"><span class="idx">${c.i}</span>${c.t}<span class="ar">›</span></button>
+   <div class="body" hidden>${c.h}</div>
+ </div>`).join('');
+
+document.querySelectorAll('.acc > button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const acc=b.parentElement, body=acc.querySelector('.body');
+    const open = acc.getAttribute('open-state')==='1';
+    acc.setAttribute('open-state', open?'0':'1');
+    body.hidden = open;
+  });
+});
+
+document.getElementById('cases').innerHTML = CASES.map(c=>`
+ <article class="case">
+   <span class="tag">${c.tag}</span>
+   <h3>${c.t}</h3>
+   ${c.body}
+   <div class="take"><b>帶走的啟發 ▸</b> ${c.take}</div>
+ </article>`).join('');
+
+const quizBox=document.getElementById('quiz');
+quizBox.innerHTML = QUIZ.map((q,qi)=>`
+ <div class="q">
+   <div class="qt">Q${qi+1}. ${q.q}</div>
+   <div class="opts">${q.o.map((o,oi)=>
+     `<button class="opt" data-q="${qi}" data-o="${oi}">${String.fromCharCode(65+oi)}. ${o}</button>`).join('')}</div>
+   <div class="exp" hidden id="exp${qi}"><b>解析：</b>${q.e}</div>
+ </div>`).join('');
+
+let answered=0, correct=0;
+quizBox.querySelectorAll('.opt').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const qi=+btn.dataset.q, oi=+btn.dataset.o;
+    const group=btn.closest('.opts');
+    if(group.dataset.done) return;
+    group.dataset.done='1';
+    group.querySelectorAll('.opt').forEach((b,i)=>{
+      b.disabled=true;
+      if(i===QUIZ[qi].a) b.classList.add('right');
+      else if(i===oi) b.classList.add('wrong');
+    });
+    document.getElementById('exp'+qi).hidden=false;
+    answered++; if(oi===QUIZ[qi].a) correct++;
+    const s=document.getElementById('score');
+    s.textContent = `已作答 ${answered} / ${QUIZ.length}　答對 ${correct} 題` +
+      (answered===QUIZ.length ? (correct>=5?'　✓ 本週觀念掌握良好，可以進入作業了。'
+        : correct>=3?'　建議回頭重讀核心概念 01 與 04。'
+        : '　建議搭配 W01-自學指南.md 重讀一次再作答。') : '');
+  });
+});
+
+/* ---------- 導覽 ---------- */
+let cur=0;
+const secs=[...document.querySelectorAll('section[data-s]')];
+const prev=document.getElementById('prev'), next=document.getElementById('next');
+function go(i){
+  cur=Math.max(0,Math.min(STEPS.length-1,i));
+  secs.forEach(s=>s.hidden = +s.dataset.s !== cur);
+  stepsBox.querySelectorAll('button').forEach((b,bi)=>b.setAttribute('aria-current', bi===cur));
+  prev.disabled = cur===0;
+  next.disabled = cur===STEPS.length-1;
+  next.textContent = cur===STEPS.length-1 ? '已是最後一節' : '下一節 →';
+  document.getElementById('bar').style.width = ((cur+1)/STEPS.length*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+stepsBox.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) go(+b.dataset.i); });
+prev.addEventListener('click',()=>go(cur-1));
+next.addEventListener('click',()=>go(cur+1));
+go(0);
+
+/* ---------- 主題 ---------- */
+const tb=document.getElementById('tbtn');
+function curT(){return document.documentElement.getAttribute('data-theme')
+  || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}
+function paint(){tb.textContent = curT()==='dark'?'☀ 淺色':'☾ 深色';}
+tb.addEventListener('click',()=>{
+  document.documentElement.setAttribute('data-theme', curT()==='dark'?'light':'dark'); paint();});
+paint();
+</script>
+</body>
+</html>
