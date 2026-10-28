@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>W03 · AI 可行性判斷 — 互動教材</title>
+<style>
+:root{
+  --bg:#f7f6f3; --surface:#ffffff; --surface-2:#f0eee9;
+  --text:#1f1e1c; --muted:#6b675f; --line:#e2dfd8;
+  --accent:#b4563a; --accent-soft:#f5e7e1;
+  --ok:#3d6b5c; --ok-soft:#e3efe9;
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16151a; --surface:#1f1e25; --surface-2:#282730;
+    --text:#ece9e4; --muted:#a09b93; --line:#343340;
+    --accent:#e28468; --accent-soft:#3a2a26;
+    --ok:#6fb39a; --ok-soft:#23332d;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16151a; --surface:#1f1e25; --surface-2:#282730;
+  --text:#ece9e4; --muted:#a09b93; --line:#343340;
+  --accent:#e28468; --accent-soft:#3a2a26;
+  --ok:#6fb39a; --ok-soft:#23332d;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+ font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;
+ line-height:1.8;-webkit-font-smoothing:antialiased}
+
+#bar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--accent);z-index:20;transition:width .25s}
+
+header.top{
+  position:sticky;top:0;z-index:10;background:var(--surface);
+  border-bottom:1px solid var(--line);padding:12px 16px;
+}
+.top-in{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top .w{font-size:.75rem;font-weight:700;letter-spacing:.12em;color:var(--accent)}
+.top h1{font-size:1rem;margin:0;flex:1;min-width:180px;font-weight:600}
+.themebtn{border:1px solid var(--line);background:var(--surface-2);color:var(--muted);
+ border-radius:999px;padding:5px 12px;font-size:.78rem;cursor:pointer;font-family:inherit}
+
+nav.steps{max-width:960px;margin:0 auto;padding:14px 16px 0;display:flex;gap:6px;flex-wrap:wrap}
+nav.steps button{
+  border:1px solid var(--line);background:var(--surface);color:var(--muted);
+  padding:7px 14px;border-radius:999px;cursor:pointer;font-size:.85rem;font-family:inherit;transition:.15s}
+nav.steps button:hover{color:var(--text)}
+nav.steps button[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+
+main{max-width:960px;margin:0 auto;padding:8px 16px 90px}
+section[hidden]{display:none}
+section{animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+h2{font-size:1.5rem;margin:32px 0 6px;letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:28px 0 8px}
+h4{font-size:.98rem;margin:20px 0 6px}
+p{margin:12px 0}
+.muted{color:var(--muted)}
+.lead{font-size:1.05rem;color:var(--muted);margin-bottom:8px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin:16px 0}
+.card.accent{border-left:4px solid var(--accent)}
+.card.ok{border-left:4px solid var(--ok);background:var(--ok-soft)}
+.card h3{margin-top:0}
+
+table{width:100%;border-collapse:collapse;font-size:.92rem;background:var(--surface);
+ border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin:16px 0}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--surface-2);font-weight:600;font-size:.85rem}
+tr:last-child td{border-bottom:none}
+.tblwrap{overflow-x:auto}
+
+.nest{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:16px 0}
+
+/* 影響 × 可行性矩陣 */
+.mxwrap{margin:18px 0}
+.mx{display:grid;grid-template-columns:28px 1fr 1fr;grid-template-rows:1fr 1fr 28px;gap:8px;
+ background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+.mx .ylab{grid-row:1 / span 2;writing-mode:vertical-rl;transform:rotate(180deg);
+ display:flex;align-items:center;justify-content:center;font-size:.76rem;color:var(--muted);letter-spacing:.1em}
+.mx .xlab{grid-column:2 / span 2;display:flex;align-items:center;justify-content:center;
+ font-size:.76rem;color:var(--muted);letter-spacing:.1em}
+.quad{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.quad.hot{border:2px solid var(--ok);background:var(--ok-soft)}
+.quad.inv{border:2px solid var(--accent)}
+.quad .qn{font-weight:700;font-size:.95rem}
+.quad .qp{font-size:.72rem;color:var(--muted);letter-spacing:.04em;margin-top:2px}
+.quad .qd{font-size:.84rem;color:var(--muted);margin-top:8px}
+
+/* 容錯度光譜 */
+.spec{margin:16px 0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.srow{display:grid;grid-template-columns:96px 1fr;gap:0;border-bottom:1px solid var(--line);background:var(--surface)}
+.srow:last-child{border-bottom:none}
+.srow .sl{padding:12px 14px;font-weight:700;font-size:.85rem;background:var(--surface-2);border-right:1px solid var(--line)}
+.srow .sb{padding:12px 14px;font-size:.88rem}
+.srow .sb .ss{color:var(--muted);display:block;font-size:.82rem;margin-top:4px}
+.srow.s1 .sl{color:var(--ok)}
+.srow.s4 .sl{color:var(--accent)}
+
+/* 四問自評器 */
+.fourq{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin:18px 0}
+.fq{border-bottom:1px solid var(--line);padding:12px 0}
+.fq:last-of-type{border-bottom:none}
+.fq .fqt{font-weight:600;font-size:.94rem;margin-bottom:8px}
+.fq .fqo{display:flex;gap:8px;flex-wrap:wrap}
+.fq .fqo button{border:1px solid var(--line);background:var(--surface-2);color:var(--text);
+ border-radius:999px;padding:6px 14px;font-family:inherit;font-size:.84rem;cursor:pointer}
+.fq .fqo button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.fqout{margin-top:16px;padding:14px 16px;background:var(--surface-2);border-radius:12px;font-size:.92rem}
+.fqout b{color:var(--accent)}
+
+.concepts{display:grid;gap:12px}
+.acc{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.acc>button{
+  width:100%;text-align:left;background:none;border:none;padding:16px 20px;cursor:pointer;
+  font-family:inherit;color:var(--text);font-size:1rem;font-weight:600;display:flex;gap:12px;align-items:center}
+.acc>button .idx{color:var(--accent);font-size:.8rem;font-weight:700;letter-spacing:.08em}
+.acc>button .ar{margin-left:auto;color:var(--muted);transition:.2s}
+.acc[open-state="1"]>button .ar{transform:rotate(90deg)}
+.acc .body{padding:0 20px 18px;border-top:1px solid var(--line);color:var(--text)}
+.acc .body[hidden]{display:none}
+
+.cases{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.case{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.case .tag{font-size:.72rem;color:var(--accent);background:var(--accent-soft);padding:3px 10px;border-radius:999px}
+.case .meta{font-size:.7rem;color:var(--muted);margin-top:10px;letter-spacing:.02em}
+.case h3{margin:10px 0 6px;font-size:1.05rem}
+.case p{font-size:.92rem;color:var(--muted);margin:8px 0}
+.case table{font-size:.82rem}
+.case .take{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:.88rem;color:var(--text)}
+.case .take b{color:var(--accent)}
+
+.q{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin:14px 0}
+.q .qt{font-weight:600;margin-bottom:6px}
+.q .kind{font-size:.7rem;color:var(--accent);background:var(--accent-soft);padding:2px 9px;border-radius:999px;margin-bottom:10px;display:inline-block}
+.opts{display:grid;gap:8px}
+.opt{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:11px 14px;
+ cursor:pointer;font-family:inherit;font-size:.93rem;text-align:left;color:var(--text);transition:.15s}
+.opt:hover{border-color:var(--accent)}
+.opt.right{background:var(--ok-soft);border-color:var(--ok);color:var(--text)}
+.opt.wrong{background:var(--accent-soft);border-color:var(--accent);opacity:.75}
+.opt:disabled{cursor:default}
+.exp{margin-top:12px;padding:12px 14px;background:var(--surface-2);border-radius:10px;font-size:.9rem;color:var(--muted)}
+.exp[hidden]{display:none}
+.exp b{color:var(--text)}
+.revealbtn{border:1px solid var(--accent);background:none;color:var(--accent);border-radius:999px;
+ padding:8px 16px;font-family:inherit;font-size:.85rem;cursor:pointer;margin-top:10px}
+.revealbtn:hover{background:var(--accent-soft)}
+.note{font-size:.85rem;color:var(--muted);margin-top:8px}
+.score{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+ padding:16px 20px;margin-top:16px;font-weight:600}
+
+ul,ol{padding-left:22px}
+li{margin:6px 0}
+.hw{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);
+ border-radius:var(--radius);padding:20px 22px;margin:16px 0}
+.hw h3{margin-top:0}
+.alt{background:var(--surface-2);border-radius:10px;padding:14px 16px;margin-top:14px;font-size:.9rem}
+.alt b{color:var(--accent)}
+.pill{display:inline-block;font-size:.72rem;background:var(--surface-2);color:var(--muted);
+ padding:2px 10px;border-radius:999px;margin-left:8px}
+.boss{background:var(--ok-soft);border-left:4px solid var(--ok);border-radius:10px;
+ padding:14px 16px;margin:16px 0;font-size:.92rem}
+.boss b{color:var(--ok)}
+:root[data-theme="dark"] .boss b, :root:not([data-theme="light"]) .boss b{color:var(--ok)}
+
+.terms{display:grid;gap:10px}
+.term{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.term .n{font-weight:600;color:var(--accent);font-size:.95rem}
+.term .d{font-size:.9rem;color:var(--muted);margin-top:4px}
+.term .m{font-size:.84rem;margin-top:6px}
+.term .m b{color:var(--ok)}
+:root[data-theme="dark"] .term .m b, :root:not([data-theme="light"]) .term .m b{color:var(--ok)}
+
+.navbtns{display:flex;justify-content:space-between;gap:12px;margin-top:40px}
+.navbtns button{border:1px solid var(--line);background:var(--surface);color:var(--text);
+ padding:10px 20px;border-radius:999px;cursor:pointer;font-family:inherit;font-size:.9rem}
+.navbtns button:disabled{opacity:.35;cursor:default}
+.navbtns button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+
+footer{max-width:960px;margin:0 auto;padding:24px 16px 60px;border-top:1px solid var(--line);
+ color:var(--muted);font-size:.85rem;text-align:center}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+
+<header class="top">
+  <div class="top-in">
+    <span class="w">WEEK 03</span>
+    <h1>AI 可行性判斷：什麼能做、什麼做不到</h1>
+    <button class="themebtn" id="tbtn">☾ 深色</button>
+  </div>
+</header>
+
+<nav class="steps" id="steps"></nav>
+
+<main>
+
+<!-- 0 導論 + 本週新名詞 -->
+<section data-s="0">
+  <h2>開場：兩種人會在這一週鬆一口氣</h2>
+  <p class="lead">階段一的最後一週。前兩週建立心智模型，這一週開始做判斷。</p>
+
+  <div class="card">
+    <h3>第一種 · 被要求「交出 AI 成果」的主管</h3>
+    <p>年度目標寫著「完成三個 AI 導入案例」。你手上有一堆流程，但沒有人告訴你該從哪一個下手。最後通常是誰先舉手就做誰的，或挑一個看起來最容易示範的。</p>
+    <p class="muted" style="margin-bottom:0">半年後回頭看：做的那一個其實不痛，真正痛的那一個因為太難所以沒人提。</p>
+  </div>
+  <div class="card">
+    <h3>第二種 · 被塞了一個 AI 想法的 PM</h3>
+    <p>老闆參加完一場演講回來，說「我們也要做一個那個」。你知道這件事有問題，但你說不出問題在哪，或者說得出來卻講不過「別人都在做」。</p>
+    <p class="muted" style="margin-bottom:0">缺的不是立場，是一套能攤在桌上被檢驗的判斷方法。</p>
+  </div>
+
+  <div class="card accent">
+    <h3>本週的核心順序</h3>
+    <p style="margin-bottom:0"><b>先盤點，再排序，最後才評估單一想法的可行性。</b>多數教材從「你有一個想法」開始，但真實世界的起點是「我有一堆流程」。順序錯了，後面的工具再好也接不上。</p>
+  </div>
+
+  <div class="card ok">
+    <h3>課前準備</h3>
+    <p style="margin-bottom:0">W02 作業 2 的<b>流程標註表</b>就是本週的入場券——它是盤點的原料。還沒做的話，現在花十分鐘列出三到五條候選流程也完全夠用。</p>
+  </div>
+
+  <h2>本週新名詞</h2>
+  <p class="lead">本課程規則：每個專有名詞第一次出現前先給一句白話定義。這一節可以隨時回來對照。</p>
+  <div class="terms" id="terms"></div>
+  <p class="muted">本週也會用到前兩週定義過的詞，各給一句提醒：<b>基準線</b>（不用 AI 的話現況是什麼水準）、<b>人在迴路</b>（在流程某個環節安排人工確認）、<b>判別式／生成式 AI</b>（判斷題找判別式，作文題找生成式）、<b>標註</b>（人工貼上正確答案，是判別式專案最大的隱藏人力成本）、<b>模型效果衰退</b>（環境變了，過去學到的規律不再成立）。</p>
+
+  <h3>本週學完你會能夠</h3>
+  <ul>
+    <li>面對一堆候選流程時，用「影響 × 可行性矩陣」挑出前三個切入點</li>
+    <li>用「可行性四問」寫出一個有理由、可以被挑戰的「做／不做」結論</li>
+    <li>認出「假 AI 需求」——那些用規則或現成軟體就能解決的問題</li>
+    <li>說明「準確率 95%」在不同場景下代表的實際風險差異，並說出要追問的下一句話</li>
+    <li>用主管的角度審一份 AI 提案，問出四個能擋掉大部分壞提案的問題</li>
+    <li>說明傳統產業做 AI 時會多出哪三個限制，以及這對時程假設意味著什麼</li>
+  </ul>
+
+  <div class="card ok">
+    <h3>已有 PM 或資料專案經驗的學員：加速路徑</h3>
+    <p>已經熟悉「先盤點再評估」的話，可以<b>略讀核心概念 01</b>，從核心概念 02 開始。</p>
+    <p style="margin-bottom:0"><b>進階挑戰</b>：拿你公司過去兩年做過的一個 AI 或自動化專案（成功失敗都可以），回頭用四問逐題補答一次，標出「當初如果問了這一題，決策會不會不同」。做完通常會發現，卡住的不是技術選擇，是第一問或第四問在立案時沒人問。</p>
+  </div>
+
+  <div class="card">
+    <h3>這一週刻意不做的事</h3>
+    <div class="tblwrap"><table>
+      <thead><tr><th>不做</th><th>原因</th></tr></thead>
+      <tbody>
+        <tr><td>不計算統計門檻</td><td>可行性判斷在這門課是<b>業務判斷</b>，不是資料科學評估。不會出現樣本數與顯著性的計算</td></tr>
+        <tr><td>不做法律判斷</td><td>醫療、法務案例會談監管如何影響產品設計決策，但<b>本課程不提供法律意見</b>，實際適用請諮詢法務</td></tr>
+        <tr><td>不比較廠牌</td><td>不會告訴你哪家工具比較準。工具會換，判斷方法不會</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h3>本週時數估計</h3>
+    <div class="tblwrap"><table>
+      <thead><tr><th>項目</th><th>時間</th></tr></thead>
+      <tbody>
+        <tr><td>讀本互動教材</td><td>35 分</td></tr>
+        <tr><td>課堂案例討論與演練</td><td>90 分</td></tr>
+        <tr><td>讀 W03-自學指南.md</td><td>55 分</td></tr>
+        <tr><td>兩份實踐作業</td><td>60–90 分</td></tr>
+        <tr><td><b>合計</b></td><td><b>4.0–4.5 小時</b>（課程上限 5 小時）</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- 1 核心概念 -->
+<section data-s="1" hidden>
+  <h2>四個核心概念</h2>
+  <p class="lead">點開每一個展開細節。每個概念最後都附一則「給主管的提醒」。</p>
+  <div class="concepts" id="concepts"></div>
+</section>
+
+<!-- 2 主管專章 -->
+<section data-s="2" hidden>
+  <h2>主管專章：審一份 AI 提案要問的四個問題</h2>
+  <p class="lead">前面四個概念是「提案者」的視角。這一節是「審查者」的視角：一份提案送到你桌上，你只有二十分鐘，該問什麼。</p>
+
+  <div class="card accent">
+    <p style="margin-bottom:0">四個問題和可行性四問一一對應，但問法完全不同：<b>提案者要回答，審查者要戳破。</b></p>
+  </div>
+
+  <div class="card">
+    <h3>問題一 · 不用 AI 的版本長什麼樣？</h3>
+    <p class="muted">對應第三問「值得嗎」＋ 假 AI 需求</p>
+    <p><b>怎麼問</b>：「如果完全不准用 AI，你會怎麼解這個問題？那個版本要多少錢、多久？」</p>
+    <p><b>在聽什麼</b>：對方答得出一個具體替代方案而且聽起來不難 → 這可能是假 AI 需求，先做那個。答不出來 → 要麼他沒想過（請他回去想），要麼 AI 真的有價值。</p>
+    <p style="margin-bottom:0"><b>追問</b>：「現況的基準線是多少？」<b>答不出來的提案不要批。</b>沒有基準線，上線後沒人能證明它有效，也沒人能證明它無效——這種專案會一直活著，但一直沒有價值。</p>
+  </div>
+
+  <div class="card">
+    <h3>問題二 · 這件事做錯了會怎樣，誰承擔？</h3>
+    <p class="muted">對應第二問「容錯嗎」</p>
+    <p><b>怎麼問</b>：「它判斷錯的時候會發生什麼事？多久會有人發現？發現之後補不補得回來？」</p>
+    <p><b>三個紅旗</b></p>
+    <ul>
+      <li>回答裡沒有「人在哪裡介入」→ 低容錯場景沒有人在迴路，退回。</li>
+      <li>「它很準，所以不太會錯」→ 這是迴避問題。所有系統都會錯，提案要寫的是錯了怎麼辦。</li>
+      <li>說不出「誰會先發現」→ 沒有人負責發現的錯誤，等於要等客訴來通知你。</li>
+    </ul>
+    <p style="margin-bottom:0"><b>追問（最能分出提案品質的一題）</b>：「<b>偽陽性和偽陰性，我們寧可哪一種多一點？</b>」提案者沒想過這一題，整個系統的設計方向都還沒定。</p>
+  </div>
+
+  <div class="card">
+    <h3>問題三 · 資料從哪來、誰維護？</h3>
+    <p class="muted">對應第一問「有資料嗎」</p>
+    <p><b>怎麼問</b>：「這些資料現在在哪裡、什麼格式、誰的？誰負責讓它保持乾淨？」</p>
+    <ul>
+      <li>資料在別的部門手上而且<b>還沒談過</b> → 這是整個專案的<b>關鍵路徑</b>（決定總工期的那一串工作，它一延誤整個專案就延誤），要在立案前談定。</li>
+      <li>需要人工標註 → 問清楚要標幾筆、誰標、標多久。這是真實人力成本，要進預算。</li>
+      <li>「資料我們都有」→ 追問那句最有效的話：「<b>如果現在要人工做這件判斷，他需要打開幾個系統？</b>」答案超過三個，整合成本就會大於模型成本。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>問題四 · 上線之後誰看它？</h3>
+    <p class="muted">對應第四問「做得完嗎」＋ 模型效果衰退</p>
+    <p><b>怎麼問</b>：「三個月後它效果變差，誰會先知道？用什麼指標判斷？」</p>
+    <p>這一題幾乎總是提案裡最薄弱的一段。合格的回答要包含三件事：<b>具名的負責人、看什麼數字、多久看一次</b>。</p>
+    <p style="margin-bottom:0"><b>追問</b>：「這個指標裡有沒有一項是『AI 說沒問題、但人後來發現有問題』的案件數？」沒有的話，這個專案的品質監控是半盲的。</p>
+  </div>
+
+  <h3>四問的審查結論</h3>
+  <div class="tblwrap"><table>
+    <thead><tr><th>缺哪一題</th><th>你的處置</th></tr></thead>
+    <tbody>
+      <tr><td>沒有基準線（一）</td><td>退回補基準線。這是最便宜的退回，通常一週可以補完</td></tr>
+      <tr><td>沒有容錯設計（二）</td><td>退回重新設計，或把範圍縮到高容錯的子流程先做</td></tr>
+      <tr><td>資料沒談定（三）</td><td><b>不要批這一期做模型</b>，改批「資料整理」當這一期的交付</td></tr>
+      <tr><td>沒有維運負責人（四）</td><td>批，但附條件：上線前必須指定負責人與檢視頻率，否則不驗收</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="boss">
+    <b>給主管的提醒 · 主管專章</b>
+    <p>這四個問題的真正價值不是擋掉壞提案，是<b>改變團隊準備提案的方式</b>。當團隊知道你一定會問這四題，第二次送上來的提案就會自己帶著答案。你會發現有些提案根本沒送上來——因為準備的過程中，提案人自己發現第一問就過不了。</p>
+    <p style="margin-bottom:0"><b>你的動作</b>：把這四個問題貼在立案文件的第一頁，或在部門會議上公開說「以後 AI 提案我會問這四題」。一次宣告，長期有效。</p>
+  </div>
+
+  <h3>傳統產業的三個額外限制</h3>
+  <p class="lead">前面的方法完全適用，但傳統產業會多出三個限制，而這三個限制會直接改變你的時程假設。</p>
+  <div class="tblwrap"><table>
+    <thead><tr><th style="width:30%">限制</th><th>實際後果（你該怎麼調整）</th></tr></thead>
+    <tbody>
+      <tr><td><b>一 · 資料在紙本與舊系統裡</b><br><span class="muted">工單在紙上、報價在信箱、設備紀錄在十五年前的系統且無匯出功能</span></td>
+          <td>第一期的交付物應該是「<b>資料變成可用</b>」，而不是「AI 上線」。把它當成一期專案來立案，它就有預算、有業主、有驗收標準；把它當成 AI 專案的前置作業，它就會變成無限期的阻塞點</td></tr>
+      <tr><td><b>二 · 決策鏈長，流程跨部門</b><br><span class="muted">一條流程橫跨業務、生產、品管、財務，每個關卡都有一位要簽的人，而他們都不是專案業主</span></td>
+          <td>試點範圍要選<b>一個部門內部就能跑完的子流程</b>，不要一開始就挑跨三個部門的主流程。<b>做完一個完整的小循環，比做一半的大循環有價值得多</b></td></tr>
+      <tr><td><b>三 · 風險承受度低，出過一次事就不准再用</b><br><span class="muted">製造、醫療、金融的現場文化是零容忍，一次明顯錯誤會讓整個工具被下架</span></td>
+          <td>第一個試點要選<b>高容錯</b>的環節，哪怕效益比較小。第一次導入的真正目標不是省錢，是<b>建立「這東西可以信任」的經驗</b>。這一點常和 KPI（績效指標）壓力衝突，但它決定第二期還有沒有機會</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 3 案例 -->
+<section data-s="3" hidden>
+  <h2>三個產業案例</h2>
+  <p class="lead">三種容錯度、三種技術型態。三則案例皆於 2026-10 查證場景仍成立。其中兩則為企業內部流程場景。</p>
+  <div class="cases" id="cases"></div>
+
+  <div class="card accent" style="margin-top:24px">
+    <h3>三個案例的共同主線</h3>
+    <div class="tblwrap"><table>
+      <thead><tr><th></th><th>醫療</th><th>物流</th><th>法務</th></tr></thead>
+      <tbody>
+        <tr><td><b>真正的第一個里程碑</b></td><td>法規狀態確認</td><td>基準線量出來</td><td>條款紅線清單寫下來</td></tr>
+        <tr><td><b>最常被低估的成本</b></td><td>進得了既有系統</td><td>串接幾套系統</td><td>把公司標準寫下來</td></tr>
+        <tr><td><b>最容易被漏掉的指標</b></td><td>「判定無異常、人工發現異常」</td><td>效果衰退的徵兆</td><td>漏報率（不會自己出現）</td></tr>
+        <tr><td><b>可行的關鍵</b></td><td>從診斷改成把關</td><td>從模型改成先建基準線</td><td>從審完改成分流</td></tr>
+      </tbody>
+    </table></div>
+    <p style="margin-bottom:0"><b>沒有一個卡在模型不夠強。</b>三個案例可行的方式都是同一招：<b>把 AI 的角色往後退一格</b>——從代替人做決定，改成幫人少做錯。</p>
+  </div>
+</section>
+
+<!-- 4 自我檢驗 -->
+<section data-s="4" hidden>
+  <h2>自我檢驗</h2>
+  <p class="lead">前 2 題是選擇題，選完立刻看解析；後 4 題是申論題，請先自己寫下答案再展開參考方向。</p>
+  <div id="quiz"></div>
+  <div class="score" id="score">選擇題尚未作答</div>
+</section>
+
+<!-- 5 作業 -->
+<section data-s="5" hidden>
+  <h2>實踐作業</h2>
+  <p class="lead">兩份作業，合計估計 60–90 分鐘。重實作，不重字數。每份都附「非 PM 背景替代版」。</p>
+
+  <div class="hw">
+    <h3>作業 1 · 用四問檢核表評估一個 AI 想法<span class="pill">40–50 分鐘</span></h3>
+    <p><b>目標</b>：完成一次完整的可行性判斷，並寫出一個有理由、可以被挑戰的「做／不做」結論。</p>
+    <p><b>前置素材</b>：W02 作業 2 的流程標註表。沒有的話，先列出三到五條候選流程（參考核心概念 01 的四欄表），花 10 分鐘即可。</p>
+    <p><b>步驟</b></p>
+    <ol>
+      <li><b>先跑矩陣</b>（10 分鐘）。把候選流程畫到影響 × 可行性圖上，標出象限，並<b>寫一句話說明為什麼不先做其他那幾條</b>。</li>
+      <li><b>挑右上角那一條</b>（右上角是空的，就挑最接近的一條）。</li>
+      <li><b>跑四問</b>（25 分鐘）。每一問都要寫出「答案」與「依據」，不能只寫可以／不行。</li>
+      <li><b>標出最弱的一問</b>。這是必填欄位。</li>
+      <li><b>寫結論句</b>，格式固定：「做／不做／先做 X。因為第 ___ 問的答案是 ___。下一步是 ___，負責人是 ___。」</li>
+    </ol>
+    <p><b>必備欄位</b>：矩陣圖（手畫拍照、簡單表格皆可）＋ 四問表（問題／答案／依據）＋ 最弱的一問 ＋ 結論句。<br><b>篇幅</b>：表格 + 文字 400–600 字。</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>評分重點</th><th style="width:70px">權重</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td>矩陣有做，且「為什麼不先做其他的」寫得出來</td><td>25%</td><td>只畫圖不寫理由不算完成</td></tr>
+        <tr><td>四問每一問都有「依據」</td><td>30%</td><td>依據要是具體事實（系統名稱、人時數字、誰負責），不是推測</td></tr>
+        <tr><td>「最弱的一問」有誠實填寫</td><td>25%</td><td>四問全部沒問題的答案，通常代表還沒認真問</td></tr>
+        <tr><td>結論句完整（含負責人與下一步）</td><td>20%</td><td>沒有負責人的結論不是結論</td></tr>
+      </tbody>
+    </table></div>
+    <p><b>完成判準</b>：把這一頁拿給流程裡的實際執行者看，請他指出哪一欄寫錯了。<b>他能指出一個具體錯誤，就代表你寫的東西夠具體</b>——這比他說「寫得不錯」有價值得多。</p>
+    <div class="alt"><b>非 PM 背景替代版 ▸</b> 沒有公司內部的 AI 想法時，用<b>個人或家庭的重複性工作</b>：每月記帳對帳、整理照片並命名、每週排家庭採買清單、整理會議筆記成待辦。四問完全適用（有資料嗎＝紀錄是不是數位且一致；容錯嗎＝弄錯了會怎樣；值得嗎＝現在花多久、最笨的做法是什麼；做得完嗎＝誰維護）。連這個也不方便的話，用下面這份共用情境：
+      <p style="margin:10px 0 0"><b>共用情境 · 中小企業的「員工報帳審核」流程</b><br>
+      員工拍發票上傳 → 填寫金額與費用類別 → 直屬主管核可 → 財務檢查發票與金額是否相符 → 檢查是否符合費用政策（誤餐費上限、計程車需寫事由）→ 入帳 → 月結彙總。<br>
+      <span class="muted">已知資訊：每月約 300 件；財務 1 人處理約 3 個工作日；發票照片品質不一，部分為手寫收據；費用政策寫在三年前的 Word 檔，中間用郵件改過兩次沒有更新回文件；審錯的後果是員工少領或多領錢，月結時會被發現並補正；去年曾因政策版本不一致引起爭議。</span><br>
+      <b>請用這份情境完成矩陣（和另外兩條你自己想的流程一起排）與四問。</b> 提示：這份情境裡至少有一個第一問的問題和一個第四問的問題。</p>
+    </div>
+  </div>
+
+  <div class="hw">
+    <h3>作業 2 · 失敗案例解剖<span class="pill">20–40 分鐘</span></h3>
+    <p><b>目標</b>：練習從結果反推原因。看懂別人在哪一問上跌倒，比記住成功案例有用得多。</p>
+    <p><b>步驟</b></p>
+    <ol>
+      <li><b>找一個失敗或草草收場的 AI／自動化專案。</b>來源順序建議：你自己公司過去兩年的專案（最有價值，敏感就換下一項）→ 同業或研討會分享（<b>優先挑說得出「踩了什麼坑」的</b>）→ 公開報導。</li>
+      <li><b>寫出它踩到哪一問。</b>四問裡哪一問沒過？如果屬於「其實不該做」，指出它是哪一種假 AI 需求。</li>
+      <li><b>寫出一個反事實</b>：如果當初在立案時問了那一題，決策會不同嗎？會變成什麼決策？</li>
+      <li><b>寫出一個可以帶進你自己工作的檢查動作</b>（一句話、一個欄位、一個會議上的問句）。</li>
+    </ol>
+    <p><b>必備欄位</b>：案例描述（來源要寫）＋ 踩到的那一問 ＋ 反事實分析 ＋ 一個檢查動作。<br><b>篇幅</b>：300–400 字。</p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>評分重點</th><th style="width:70px">權重</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td>歸因到具體的某一問</td><td>30%</td><td>「準備不足」「高層不支持」不算，要對應到四問之一</td></tr>
+        <tr><td>反事實具體</td><td>30%</td><td>要說出「決策會變成什麼」，不只是「就不會做了」</td></tr>
+        <tr><td>檢查動作可執行</td><td>25%</td><td>下週就用得上的一句話或一個欄位</td></tr>
+        <tr><td>案例來源有標註</td><td>15%</td><td>包含時間點；超過 12 個月的案例要註明可能已有變化</td></tr>
+      </tbody>
+    </table></div>
+    <p><b>完成判準</b>：那個「檢查動作」你下一次會議就能用。寫得出來但下次用不上，就代表還太抽象。</p>
+    <div class="alt"><b>非 PM 背景替代版 ▸</b> 找不到 AI 專案案例時，改用<b>一個失敗的流程改善或系統導入</b>：公司買了一套系統但大家還是用 Excel、推了一個新表單但沒人填、辦了一次培訓但沒人改做法。這些失敗的結構和 AI 專案完全一樣（通常也是第一問或第四問），而且你對細節更清楚。四問照用，只要把「有資料嗎」讀成「該有的資訊在不在手上、是不是可用的形式」。</div>
+  </div>
+</section>
+
+<!-- 6 延伸 -->
+<section data-s="6" hidden>
+  <h2>延伸思考</h2>
+  <p class="lead">沒有標準答案，適合寫下來或在課堂上討論。</p>
+
+  <div class="card"><b>一、</b>影響 × 可行性矩陣會系統性地不利於「影響很大但資料完全不在數位形式上」的流程——而在傳統產業，那常常正好是最該改的流程。你會怎麼設計一個機制，讓這類流程不會年復一年地留在左上角？</div>
+  <div class="card"><b>二、</b>「寧可誤報，不可漏報」聽起來很安全，但誤報太多會讓一線人員開始無視警示（這是另一種形式的自動化偏誤）。你會用什麼指標來判斷「誤報已經多到反而危險了」？</div>
+  <div class="card"><b>三、</b>核心概念 04 說「規則式常常是更好的答案」。但如果你的部門今年必須交出 AI 成果，而正確答案是規則式，你會怎麼處理這個衝突？<span class="muted">（提示：先把「導入案例」和「用 AI」這兩件事在定義上分開。）</span></div>
+  <div class="card"><b>四、</b>本週說容錯度決定 AI 的角色。那麼反過來——有沒有哪種場景，是<b>刻意調高容錯度</b>比降低錯誤更划算的？<span class="muted">（提示：想想「草稿」這個概念。把輸出從成品改成草稿，容錯度就變了，而這是純粹的產品設計決定。）</span></div>
+  <div class="card"><b>五（給主管）、</b>你的團隊下一次送上 AI 提案時，只能問一題的話你選哪一題，為什麼？<span class="muted">（實務上多數主管會選「不用 AI 的版本長什麼樣」或「資料從哪來、誰維護」——想想這兩題各自會擋掉什麼樣的壞提案，又各自會漏掉什麼。）</span></div>
+
+  <h2>推薦閱讀</h2>
+  <h4>長效型（原理與判斷，一年後還成立）</h4>
+  <div class="tblwrap"><table>
+    <thead><tr><th>方向</th><th>建議</th></tr></thead>
+    <tbody>
+      <tr><td>基準線與決策</td><td>任何談「決策品質」或「事前驗屍（pre-mortem，在專案開始前先假設它失敗了，反推原因）」的管理讀物。事前驗屍和本週的「最弱的一問」是同一個思路</td></tr>
+      <tr><td>錯誤成本的不對稱</td><td>找你所在產業的風險管理材料，重點讀「兩類錯誤的成本如何不相等」。這個概念在 AI 之前就存在，而且已經被想得很透徹</td></tr>
+      <tr><td>自動化與人的關係</td><td>任何談「自動化偏誤」或「人機協作」的材料。這個領域的研究比 AI 熱潮早幾十年，結論相當穩固而且直接可用</td></tr>
+      <tr><td>流程盤點</td><td>任何流程改善方法論的「現況盤點」章節。不必學完整方法，只要那一章——本週的四欄表就是它的最小版本</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4>易過期型 ⚠️</h4>
+  <div class="card accent">
+    <p class="muted">以下資源的內容每幾個月就會變動，請以你查閱當天的版本為準。<b>本區塊的內容不納入課程主張。</b></p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>方向</th><th>建議</th><th>查核方式</th></tr></thead>
+      <tbody>
+        <tr><td>特定產業的 AI 落地型態</td><td>你所在產業最近 6 個月的實務分享</td><td>優先看說得出「踩了什麼坑」的分享。只講成效的通常是行銷材料</td></tr>
+        <tr><td>法規與合規要求</td><td>你所在產業的主管機關公告</td><td><b>本課程不提供法規判定。</b>一律由法務或法規專責人員確認，而且要確認「在我們這個市場」的狀態</td></tr>
+        <tr><td>廠商的效益數字</td><td>供應商提供的案例</td><td>一律用本週的三句話檢查：<b>基準線怎麼定義、測試期間多長、用什麼誤差指標</b></td></tr>
+      </tbody>
+    </table></div>
+    <p style="margin-bottom:0"><b>閱讀比例建議</b>：兩成時間讀長效型（錯誤成本、自動化偏誤、決策品質——這些不會過期），八成時間追蹤你<b>自己產業</b>最近三個月的實務案例。本週的方法論刻意做得不綁產業，所以產業特定的知識要自己補。</p>
+  </div>
+
+  <h2>本週重點回顧</h2>
+  <div class="card ok">
+    <p>如果這一週只能記住六句話：</p>
+    <ol>
+      <li><b>先盤點，再排序，最後才評估單一想法。</b>只評估被提出來的那一個，等於讓提案能力決定資源分配。</li>
+      <li><b>影響高、可行性低的流程，這一期的交付物是「資料變成可用」，不是 AI 上線。</b></li>
+      <li><b>四問的順序不能換，而且「最弱的一問」是必填欄位。</b>四問全過的答案，通常代表還沒認真問。</li>
+      <li><b>「準確率 95%」要追問四件事</b>：在什麼題目上算的、那 5% 落在哪個客群、錯的方向是漏報還是誤報、和基準線比如何。</li>
+      <li><b>低容錯場景的解法不是更準的模型，是換一個角色的 AI</b>——從代替判斷改成減少遺漏。</li>
+      <li><b>「不用 AI 的話你會怎麼解？」</b>這一句話擋掉的壞專案，比任何技術審查都多。</li>
+    </ol>
+    <p style="margin-bottom:0">另外記住一件事：<b>明確說出「這個現在不做」，本身就是一個交付物。</b>它需要理由、需要紀錄、需要有人承擔，所以它是工作，不是推託。</p>
+  </div>
+
+  <h2>下週預告</h2>
+  <div class="card">
+    <h3>第 4 週 · 提示工程基礎：把需求講清楚</h3>
+    <p>階段一結束了。你現在有了心智模型（W02）和判斷工具（W03）。從下週起進入階段二，開始動手。</p>
+    <p>W04 處理一件你每天都在做、但很少被當成技能練習的事：<b>把需求講清楚</b>。你會發現「提示能力」其實就是「需求定義能力」的另一個名字。本週會帶給你一份個人的 PM 提示範本庫，以及一個判斷「什麼問題不是靠改提示能解決的」的界線。</p>
+    <p class="muted" style="margin-bottom:0"><b>課前準備</b>：把本週作業 1 的<b>四問表</b>帶來。W04 會拿它當素材，練習把一個判斷任務寫成清楚的提示——你會看到四問表的欄位和一個好提示的結構高度重疊，這不是巧合。</p>
+  </div>
+</section>
+
+  <div class="navbtns">
+    <button id="prev">← 上一節</button>
+    <button id="next" class="primary">下一節 →</button>
+  </div>
+</main>
+
+<footer>AI PM 經理人班 · 第 3 週互動教材 · v1.0 · 2026-10-16<br>搭配 <b>W03-自學指南.md</b> 服用效果更佳｜名詞定義同步於 <b>00-課程大綱/名詞對照表.md</b><br>本週一併處理驗證報告 P0-3（主管視角四問）、P0-4（流程盤點與優先排序矩陣）、P1-4（傳統產業三個額外限制）</footer>
+
+<script>
+/* ---------- 內容資料 ---------- */
+const STEPS = ["導論與新名詞","核心概念","主管專章","產業案例","自我檢驗","實踐作業","延伸與預告"];
+
+const TERMS = [
+{n:"流程盤點（Process inventory）",
+ d:"把一個部門目前在做的工作一條一條列出來，寫清楚誰做、多久做一次、花多少時間。",
+ m:"<b>它代表的決策</b>：AI 專案的第一個里程碑。沒有這張清單，所有「要導入 AI」的討論都是在比誰的提案講得好聽。"},
+{n:"影響 × 可行性矩陣（Impact-feasibility matrix）",
+ d:"把候選流程畫在一張兩軸的圖上：一軸是做成了有多大價值，另一軸是現在做得起來的機率有多高。",
+ m:"<b>它代表的決策</b>：決定先做哪一個。它的用途不是找出最好的，是讓「為什麼不先做你那個」有一個講得出口的理由。"},
+{n:"容錯度（Error tolerance）",
+ d:"這件事做錯了，代價有多大、補救有多容易。",
+ m:"<b>它代表的決策</b>：它決定這個專案要不要做、要做到多嚴、要不要人工複核。<b>容錯度是本週最重要的一個詞。</b>"},
+{n:"假 AI 需求（Pseudo-AI requirement）",
+ d:"聽起來需要 AI，但其實用規則、現成軟體、或改一張表單就能解決的需求。",
+ m:"<b>它代表的決策</b>：擋掉它可以省下六個月。認出它的方法是先問：「不用 AI 的話，最笨的做法是什麼？」"},
+{n:"偽陽性 / 偽陰性（False positive / False negative）",
+ d:"偽陽性＝它說有、其實沒有（誤報）；偽陰性＝它說沒有、其實有（漏掉）。",
+ m:"<b>它代表的決策</b>：兩種錯的代價幾乎從不相等。決定哪一種錯比較不能忍受，是 PM 的工作，不是模型的預設值。"},
+{n:"自動化偏誤（Automation bias）",
+ d:"工具越可靠，人越容易照它說的做，不再自己確認。",
+ m:"<b>它代表的決策</b>：它是人工複核最大的敵人。你設計的複核環節會隨著系統變準而自己失效，所以要排定期抽查。"},
+{n:"總持有成本（TCO, Total cost of ownership）",
+ d:"從頭到尾的全部花費：建置 + 資料整理 + 每次使用 + 人力 + 維運 + 將來重做。",
+ m:"<b>它代表的決策</b>：把「開發報價」當成成本是最常見的誤判。AI 專案的成本重心在資料與維運，不在開發。"},
+{n:"可逆性（Reversibility）",
+ d:"做錯了能不能收回來、收回來要花多少代價。",
+ m:"<b>它代表的決策</b>：不可逆的決定（錢付出去、信件寄出去、資料刪掉）在上線前一定要有人工確認點，不管模型多準。"}
+];
+
+const CONCEPTS = [
+{ i:"概念 01", t:"先盤點，再評估——流程盤點與影響 × 可行性矩陣", h:`
+<p>多數 AI 教材從「你有一個想法」開始。但真實世界的起點通常是另一個：<b>你有一堆流程，不知道該從哪一個下手。</b></p>
+<p>這個差別很要緊。從單一想法開始評估，你只能回答「這個能不能做」。但主管真正要回答的是「<b>在我能動的資源下，先做哪一個最划算</b>」。而且，<b>只評估被提出來的那一個想法，等於讓提案能力決定資源分配</b>——會寫提案的部門拿到資源，不會寫的部門的痛點永遠沒人看見，而後者常常才是真正值得做的。</p>
+
+<h3>第一步：流程盤點（30 分鐘就做得完的版本）</h3>
+<p>完整的流程盤點是一個專案，但你不需要完整版才能開始。一個夠用的最小版本只要四欄：</p>
+<div class="tblwrap"><table>
+<thead><tr><th>流程名稱</th><th>誰在做</th><th>頻率與耗時</th><th>做錯的後果</th></tr></thead>
+<tbody>
+<tr><td>客訴分類與派工</td><td>客服 3 人</td><td>每天，每人 2 小時</td><td>派錯部門，處理延遲一天</td></tr>
+<tr><td>月結對帳差異查核</td><td>財務 2 人</td><td>每月，共 3 天</td><td>帳錯要重開發票，會被稽核記點</td></tr>
+<tr><td>供應商詢價與比價</td><td>採購 1 人</td><td>每週 5–8 件，每件 40 分</td><td>選錯廠商，多付錢或延誤交期</td></tr>
+<tr><td>新人入職文件準備</td><td>HR 1 人</td><td>每月 2–3 人，每人 1 小時</td><td>漏件，新人第一天沒電腦</td></tr>
+<tr><td>週報彙整</td><td>各組長 6 人</td><td>每週，每人 1 小時</td><td>數字不一致，會議上吵半小時</td></tr>
+</tbody></table></div>
+<p><b>三個實務要點</b></p>
+<ol>
+<li><b>單位是「步驟」不是「部門」。</b>「處理客訴」不是一個流程，它是「收件 → 判斷類別 → 查歷史 → 判斷責任單位 → 回覆 → 結案追蹤」六個步驟。拆得夠細才看得出哪一步可以動。<b>W02 作業 2 要求拆 5–8 個步驟，就是為了這一刻。</b></li>
+<li><b>耗時要用「每週總人時」統一單位。</b>「每月 3 天 × 2 人」要換算成每週約 12 人時，不然不同流程之間無法比較。</li>
+<li><b>「做錯的後果」這一欄不能空白。</b>它是容錯度判斷的原料。寫不出來通常代表這個流程其實不重要，或者代表你還沒問對人。</li>
+</ol>
+
+<h3>第二步：影響 × 可行性矩陣</h3>
+<div class="mxwrap">
+<div class="mx">
+  <div class="ylab">影響（做成了有多大價值）→ 高</div>
+  <div class="quad inv"><div class="qn">值得投資</div><div class="qp">影響高 · 可行性低</div>
+    <div class="qd"><b>不要現在做模型，先去解可行性那一邊。</b>多數情況要補的是資料。這一期的交付物是「資料整理完成」。</div></div>
+  <div class="quad hot"><div class="qn">先做這個</div><div class="qp">影響高 · 可行性高</div>
+    <div class="qd">第一期就做。通常只有 1–2 個，不要貪心。</div></div>
+  <div class="quad"><div class="qn">現在不要</div><div class="qp">影響低 · 可行性低</div>
+    <div class="qd">寫在清單上，標註日期，然後放下。<b>明確說出「現在不做」本身就是一個交付物。</b></div></div>
+  <div class="quad"><div class="qn">順手做掉</div><div class="qp">影響低 · 可行性高</div>
+    <div class="qd">當示範案例用。價值不在效益，在讓團隊累積一次完整的導入經驗，而且失敗了不會痛。</div></div>
+  <div class="xlab">可行性（現在做得起來的機率）→ 高</div>
+</div>
+</div>
+<div class="tblwrap"><table>
+<thead><tr><th>軸</th><th>判準</th></tr></thead>
+<tbody>
+<tr><td><b>影響</b><br><span class="muted">取最高的那一個</span></td><td>① 省下的人時 × 頻率　② 錯誤造成的損失大小（即使耗時不多，一錯就賠錢的流程影響也高）　③ 對外部客戶體驗的可見度（內部看不見的改善很難爭取第二期預算）</td></tr>
+<tr><td><b>可行性</b><br><span class="muted">任一項「不行」就往左移</span></td><td>① 資料是否已經數位、集中、欄位一致　② 判斷規則是否說得出來（說得出來反而是好事，見概念 04）　③ 這件事錯了能不能補救　④ 有沒有一個明確的人願意當<b>業主</b>（owner：一個會因為這件事做不好而被問責的具名負責人；只掛名支持的「贊助者」不算）</td></tr>
+</tbody></table></div>
+
+<h3>這個矩陣真正的用途</h3>
+<p>它看起來像排序工具，實際上解決的是另一個問題：<b>讓「不做」有一個可以對上、對下、對同事說出口的理由。</b></p>
+<p>主管最難處理的不是不知道該做哪個，是知道該做哪個但不知道怎麼拒絕其他的。矩陣把這件事從「我覺得」變成「我們一起看過這張圖，你的提案在左下角，原因是資料還在紙本上」——一個可以被挑戰、被修正的理由，而不是一個人的喜好。</p>
+
+<h3>所以你該做什麼</h3>
+<div class="tblwrap"><table>
+<thead><tr><th>時機</th><th>你的動作</th></tr></thead>
+<tbody>
+<tr><td>下一次部門會議</td><td>花 20 分鐘，和團隊<b>一起</b>填出那張四欄表。不要自己填完才給大家看——盤點的價值一半在於過程中發現「原來這件事這麼花時間」</td></tr>
+<tr><td>拿到一個 AI 提案時</td><td>先問：「這個流程在我們的盤點清單上排第幾？」清單不存在，先做清單</td></tr>
+<tr><td>對上報告時</td><td>報告的第一張圖應該是矩陣，不是技術架構。主管要看的是「你怎麼決定先做這個」</td></tr>
+</tbody></table></div>
+
+<div class="boss"><b>給主管的提醒 · 概念 01</b>
+<p>你的團隊會傾向提「可行性高、影響低」的流程，因為那種提案最容易過、最容易做完交差。這不是他們投機，是<b>組織的獎勵結構決定的</b>——做成了有功，做不成有過。後果很具體：三年下來你會累積一堆小改善，而真正痛的那幾個流程一次都沒被碰過。</p>
+<p style="margin-bottom:0"><b>你的動作</b>：在矩陣上明確標出一個「影響高 · 可行性低」的流程，並且<b>不要求它這一期做出 AI</b>。給它一個不同的交付目標：「這一期把這條流程的資料整理到可用」。這樣做同時解決兩件事——真正的痛點進了路線圖，而且負責的人不用為做不出模型負責。</p></div>
+`},
+
+{ i:"概念 02", t:"AI 可行性四問：有資料嗎？容錯嗎？值得嗎？做得完嗎？", h:`
+<p>挑定一個流程之後，用四個問題判斷它能不能做。<b>四問的順序不能換——第一問沒過就不必問第二問。</b></p>
+<div class="tblwrap"><table>
+<thead><tr><th>#</th><th>問題</th><th>一句話</th><th>沒過的話</th></tr></thead>
+<tbody>
+<tr><td>一</td><td><b>有資料嗎？</b></td><td>做這件判斷需要的資訊，現在是不是已經以可用的形式存在</td><td>這一期的目標改成「把資料變成可用」</td></tr>
+<tr><td>二</td><td><b>容錯嗎？</b></td><td>做錯了代價多大、補不補得回來</td><td>改做「輔助」而不是「代替」，或是不做</td></tr>
+<tr><td>三</td><td><b>值得嗎？</b></td><td>跟現況比，省下的和多出來的哪個大</td><td>不做，並把理由寫下來</td></tr>
+<tr><td>四</td><td><b>做得完嗎？</b></td><td>有沒有人、有沒有業主、有沒有維運的人</td><td>延後，不要硬上</td></tr>
+</tbody></table></div>
+
+<h3>第一問：有資料嗎？</h3>
+<p>不是問「公司有沒有資料」——幾乎所有公司都有。它問的是四件更具體的事：</p>
+<ol>
+<li><b>它是數位的嗎？</b>紙本、掃描檔、手寫欄位都算「不是」。這是傳統產業最常卡住的地方。</li>
+<li><b>它集中嗎？</b>分散在六個系統、十五個 Excel、三個人的電腦裡，和「有資料」是兩回事。</li>
+<li><b>欄位一致嗎？</b>同一個客戶在 A 系統叫「台灣電子股份有限公司」，B 系統叫「台電子」，C 系統是手打的「台灣電子(新)」。這類不一致是最常見的隱形成本。</li>
+<li><b>有沒有「正確答案」？</b>判別式需求需要歷史上每一筆的結果。沒有就要人工標註，而標註是真實的人力成本——<b>算進預算，不要當它免費</b>。</li>
+</ol>
+<p class="muted"><b>一個實用的追問</b>：「如果我現在要人工做這件判斷，他需要打開幾個系統？」<b>答案超過三個，整合成本就會大於模型成本。</b></p>
+
+<h3>第二問：容錯嗎？</h3>
+<p>這是四問裡最重要、也最常被跳過的一問。三個層次：</p>
+<ul>
+<li><b>錯了的代價有多大？</b>推薦錯一支商品 vs 診斷錯一個病人，差了好幾個量級。</li>
+<li><b>錯了能不能補救？</b>寫錯的草稿可以改，寄出去的信收不回來，刪掉的資料找不回來。<b>可逆性比準確率重要。</b></li>
+<li><b>哪一種錯比較不能忍受？</b>偽陽性和偽陰性的代價幾乎從不相等。這一題<b>必須由業務方回答，不能交給模型的預設值</b>（詳見概念 03）。</li>
+</ul>
+
+<h3>第三問：值得嗎？</h3>
+<p>正確做法是<b>先算不用 AI 的版本</b>。</p>
+<div class="tblwrap"><table>
+<thead><tr><th>要算的</th><th>常被忽略的部分</th></tr></thead>
+<tbody>
+<tr><td><b>現況成本（基準線）</b></td><td>不只是人時，還有錯誤造成的損失、等待造成的延遲</td></tr>
+<tr><td><b>最笨做法的成本</b></td><td>寫幾條規則、買現成軟體、把表單欄位改成下拉選單。<b>這一欄沒填就直接做 AI，是本週要擋掉的最大錯誤</b></td></tr>
+<tr><td><b>AI 方案的總持有成本</b></td><td>建置 + 資料整理 + 每次使用的費用 + 人工複核的人力 + 維運 + 兩年後重做</td></tr>
+<tr><td><b>留下來的人工</b></td><td>導入後人工不會歸零。通常還有一到三成的案件要人處理，<b>而且是最難的那些</b></td></tr>
+</tbody></table></div>
+<p>最後一欄最容易被漏掉。一份「客訴分類自動化」的提案，如果省下三個人六成的時間，但那三個人還是得留著處理剩下四成（而且是最難的四成），實際省下的人力可能是零——省下的是「加班」和「積壓」。<b>這也是價值，但要用不同的方式論述。</b></p>
+
+<h3>第四問：做得完嗎？</h3>
+<p>技術可行不等於組織做得完。三個檢查點：</p>
+<ol>
+<li><b>有業主嗎？</b>不是「贊助者」，是一個會因為這件事做不好而被問責的人。沒有這個人的專案會在第三個月失去優先級。</li>
+<li><b>資料的主人願意配合嗎？</b>資料在別的部門手上時，取得資料往往是整個專案的關鍵路徑。<b>這是政治問題，不是技術問題，而且要在立案前談。</b></li>
+<li><b>上線之後誰看？</b>AI 系統會衰退（W02）。沒有指定「誰負責發現效果變差」，這個專案的生命週期就等於專案團隊解散的那一天。</li>
+</ol>
+
+<h3>四問的輸出：一句話的結論</h3>
+<div class="card accent" style="margin:12px 0">
+<p style="margin:0"><b>做／不做／先做 X。因為第 ___ 問的答案是 ___。下一步是 ___，負責人是 ___。</b></p>
+</div>
+<p class="muted"><b>範例</b>：先不做模型，這一期先做資料。因為第一問沒過——詢價紀錄在三年的 Excel 裡且欄位不一致。下一步是統一欄位定義並補齊近一年的紀錄，負責人是採購部的流程負責人，期限三個月後重新評估。</p>
+<p>這個句型的用途是<b>讓決策留下紀錄</b>。半年後有人問「當初為什麼不做」，你拿得出一句話，而不是一段回憶。</p>
+
+<h3>四問自評器</h3>
+<p class="lead">拿你手上的一個候選流程，逐題選答。八題答完會給你一個判斷方向。</p>
+<div class="fourq" id="fourq">
+  <div class="fq" data-k="1"><div class="fqt">第一問 · 這件判斷需要的資料，現在是數位的、集中的、欄位一致的嗎？</div>
+    <div class="fqo"><button data-v="1">是</button><button data-v="0">不完全</button></div></div>
+  <div class="fq" data-k="1b"><div class="fqt">第一問（補） · 如果是判別式需求，歷史上每一筆的「正確答案」存在嗎？（或你已把標註成本算進預算）</div>
+    <div class="fqo"><button data-v="1">是 / 不適用</button><button data-v="0">否</button></div></div>
+  <div class="fq" data-k="2"><div class="fqt">第二問 · 它判斷錯的時候，後果補救得回來嗎？</div>
+    <div class="fqo"><button data-v="1">補得回來</button><button data-v="0">不可逆</button></div></div>
+  <div class="fq" data-k="2b"><div class="fqt">第二問（補） · 「偽陽性和偽陰性，我們寧可哪一種多一點」這一題，有人明確回答過嗎？</div>
+    <div class="fqo"><button data-v="1">有</button><button data-v="0">還沒</button></div></div>
+  <div class="fq" data-k="3"><div class="fqt">第三問 · 現況的基準線（人做得多好、多快、多少成本）量得出數字嗎？</div>
+    <div class="fqo"><button data-v="1">量得出來</button><button data-v="0">沒量過</button></div></div>
+  <div class="fq" data-k="3b"><div class="fqt">第三問（補） · 「不用 AI 的最笨做法」評估過了嗎？（規則、現成軟體、改表單）</div>
+    <div class="fqo"><button data-v="1">評估過</button><button data-v="0">還沒</button></div></div>
+  <div class="fq" data-k="4"><div class="fqt">第四問 · 有一個會因為這件事做不好而被問責的業主嗎？</div>
+    <div class="fqo"><button data-v="1">有，而且是具名的</button><button data-v="0">只有贊助者</button></div></div>
+  <div class="fq" data-k="4b"><div class="fqt">第四問（補） · 上線後「誰負責發現效果變差、看什麼數字、多久看一次」定好了嗎？</div>
+    <div class="fqo"><button data-v="1">三件都定好</button><button data-v="0">還沒</button></div></div>
+  <div class="fqout" id="fqout">還沒作答。這個自評器不會替你做決定，它只負責告訴你<b>最弱的一問是哪一問</b>——那一欄就是你的下一步。</div>
+</div>
+
+<div class="boss"><b>給主管的提醒 · 概念 02</b>
+<p>當你問「這個能不能做」，你的團隊幾乎永遠會回答「可以做」。這不是他們樂觀，是因為「不能做」需要承擔拒絕的責任，而「可以做」只需要承擔延遲的責任——<b>在多數組織裡，延遲的代價遠低於拒絕的代價</b>。</p>
+<p>所以你要改問法：「這四問裡，<b>哪一問最弱</b>？」（強迫排序，而不是整體樂觀）、「如果三個月後證明做不出來，<b>我們會是在哪一問上卡住</b>？」（要求事前說出失敗模式）</p>
+<p style="margin-bottom:0"><b>你的動作</b>：把四問檢核表變成立案文件的必填頁，並規定「最弱的一問」欄位不得空白。<b>這一個欄位會擋掉的壞提案，比任何技術審查都多。</b></p></div>
+`},
+
+{ i:"概念 03", t:"容錯度光譜與兩種錯誤方向——「準確率 95%」到底是什麼意思", h:`
+<h3>容錯度光譜</h3>
+<p>把你的場景放到這條線上，再決定要不要做、要做到多嚴。</p>
+<div class="spec">
+<div class="srow s1"><div class="sl">高容錯</div><div class="sb">內容草稿、腦力激盪、內部摘要
+  <span class="ss">錯了使用者改一下就好 → 可以全自動，追求速度與數量</span></div></div>
+<div class="srow s2"><div class="sl">中容錯</div><div class="sb">商品推薦、郵件分類、優先排序
+  <span class="ss">錯了體驗變差、效率損失 → 全自動 + 事後抽查 + 可以回報錯誤</span></div></div>
+<div class="srow s3"><div class="sl">低容錯</div><div class="sb">授信、理賠、合約條款標示
+  <span class="ss">影響特定個人權益，會被申訴與稽核 → <b>AI 給建議，人做決定</b>，且必須說得出理由</span></div></div>
+<div class="srow s4"><div class="sl">零容錯</div><div class="sb">醫療診斷、安全停機、金額付款
+  <span class="ss">不可逆、可能傷人 → AI 只做把關與提示，<b>絕不做最終判定</b></span></div></div>
+</div>
+<div class="card accent">
+<p style="margin-bottom:0">這條線上最重要的一件事：往下走的時候，正確的做法<b>不是</b>「把模型做得更準」，而是<b>改變 AI 在流程裡的角色</b>——從「代替人做決定」改成「幫人少漏東西」。這個轉向通常同時降低風險、提高接受度，也讓專案容易通過採購與法務審查。</p>
+</div>
+
+<h3>「準確率 95%」到底是什麼意思</h3>
+<p>這是本週最實用的一段。當有人說「準確率 95%」時，你要追問四件事。</p>
+
+<h4>追問一 · 是在什麼題目上算的？</h4>
+<p>幾題？誰出的題？誰評分的？——廠商示範用的題目通常是對它最有利的題目。<b>要求用你自己的資料重跑一次，哪怕只有 100 筆。</b></p>
+
+<h4>追問二 · 那 5% 落在哪裡？</h4>
+<p>一個 95% 可能是「A 客群 99% + B 客群 71%」的平均。如果 B 客群正好是你最重要的大客戶，這個系統對你來說不是 95 分，是不及格。<b>一定要問分群表現，不要只看總體數字。</b></p>
+
+<h4>追問三 · 錯的 5% 是往哪個方向錯？</h4>
+<div class="tblwrap"><table>
+<thead><tr><th></th><th>它說「有問題」</th><th>它說「沒問題」</th></tr></thead>
+<tbody>
+<tr><th>實際有問題</th><td>正確抓到</td><td><b>偽陰性 · 漏掉了</b></td></tr>
+<tr><th>實際沒問題</th><td><b>偽陽性 · 誤報</b></td><td>正確放過</td></tr>
+</tbody></table></div>
+<p>兩種錯的代價幾乎從不相等：</p>
+<ul>
+<li><b>合約審閱</b>：漏掉一個不利條款可能賠一筆錢；多標一個沒問題的條款只是浪費法務五分鐘。→ <b>寧可多報，不可漏報。</b></li>
+<li><b>自動封鎖可疑交易</b>：誤封正常客戶是一通客訴加一個流失客戶；漏放一筆詐騙是一筆損失。→ 要看兩邊的金額量級，<b>而且這是商業決策，不是技術決策</b>。</li>
+<li><b>履歷初篩</b>：漏掉一個好人選你永遠不會知道，所以它不會出現在任何報表上。→ <b>看不見的錯誤最危險</b>，這類場景要刻意設計抽查。</li>
+</ul>
+<div class="card accent">
+<p style="margin-bottom:0">多數系統的報表只呈現得出「處理了多少、其中錯了多少」，而偽陰性常常<b>不會進報表</b>，因為沒有人去看那些被判定為「沒問題」的案子。所以：<b>設計指標時，一定要有一個欄位是「AI 說沒問題、但人後來發現有問題」的案件數。</b>這個數字不會自己出現，要刻意去撈。</p>
+</div>
+
+<h4>追問四 · 和基準線比呢？</h4>
+<p>人做這件事的正確率是多少？規則做得到幾分？<b>95% 聽起來很高，但如果人做是 98%，這個專案在降低品質。</b>沒有基準線，任何準確率數字都沒有意義——這句話值得抄在立案表的第一行。</p>
+
+<h3>自動化偏誤：你設計的人工複核會自己失效</h3>
+<p>這是容錯度設計裡最反直覺的一件事。你在低容錯場景安排了人工複核，看起來風險就控制住了。但實務上會發生：<b>系統越準，複核的人越不認真看。</b></p>
+<p>這不是人偷懶，是正常的認知節約。當一個工具一百次裡對了九十八次，第九十九次人會傾向直接按通過。而漏掉的那幾個案子，往往正好落在最少被仔細複查的地方。</p>
+<p><b>三個對策</b>（都是 PM 的設計決定，不是技術問題）</p>
+<ol>
+<li><b>隨機抽查，而且抽查比例不隨「系統變準」而下降。</b>寫進驗收條件，指定負責人與頻率。</li>
+<li><b>追蹤「AI 說沒問題、人後來發現有問題」的案件數</b>，定期回顧。這個數字上升是最早的警訊。</li>
+<li><b>複核介面要讓人看得到判斷依據</b>，不要只給「同意／退回」兩個按鈕。只有兩個按鈕的複核等於沒有複核。</li>
+</ol>
+
+<div class="boss"><b>給主管的提醒 · 概念 03</b>
+<p>「哪一種錯比較不能忍受」這一題，<b>技術團隊沒有資格回答，但如果你不回答，他們就會替你回答</b>——通常是用模型的預設值，也就是讓總體準確率最高的那個設定。<b>而讓總體準確率最高的設定，幾乎從來不是讓業務損失最小的設定。</b></p>
+<p><b>你的動作</b>：在立案會議上把這句話說出口並記進會議紀錄——「<b>在這個場景裡，我們寧可誤報，也不要漏掉</b>」（或反過來）。一句話，但它會改變系統的設計、驗收標準、和上線後的指標。</p>
+<p style="margin-bottom:0">補充一個難的部分：這句話說出口等於承擔了後果。選「寧可誤報」，將來一線會抱怨誤報太多；選「寧可漏掉」，將來出事會回頭問你。<b>這個責任沒辦法轉給模型</b>，這就是為什麼它是主管的工作。</p></div>
+`},
+
+{ i:"概念 04", t:"基準線思維與假 AI 需求——以及成本到底花在哪裡", h:`
+<h3>先問「人做得多好」「規則做得多好」</h3>
+<p>本週要養成的核心習慣，順序固定：</p>
+<ol>
+<li><b>現況是什麼水準？</b>（基準線）人做這件事，正確率多少、多快、成本多少？</li>
+<li><b>最笨的做法能到幾分？</b>寫五條規則、買一套現成軟體、把表單欄位從自由輸入改成下拉選單。</li>
+<li><b>AI 比它好多少？好的那一段值不值得多付的成本？</b></li>
+</ol>
+<p>跳過第 1、2 步直接做第 3 步，是企業 AI 專案最常見的失敗起點。而且失敗的方式很安靜：專案會做完、會上線、會有示範，<b>但沒有人說得出它比原來好在哪裡——因為沒人記錄原來是什麼樣子。</b></p>
+
+<h3>假 AI 需求的四種常見長相</h3>
+<div class="tblwrap"><table>
+<thead><tr><th>長相</th><th>它真正的問題</th><th>更便宜的解法</th></tr></thead>
+<tbody>
+<tr><td>「用 AI 幫我們判斷這張單要給哪個部門」</td><td>判斷規則其實只有六條，而且很穩定</td><td>寫六條規則，或在表單上加一個下拉選單讓填單人自己選</td></tr>
+<tr><td>「用 AI 從這些 PDF 裡抓出欄位」</td><td>PDF 是自己系統產生的，原始資料就在資料庫裡</td><td>直接從資料庫出報表，不要從自己印出來的紙上讀回來</td></tr>
+<tr><td>「用 AI 預測下個月的需求」</td><td>實際上沒有歷史資料，或只有十二個月</td><td>先把資料累積起來；同時用簡單的<b>移動平均</b>（拿最近幾期的平均值當預測）當基準線</td></tr>
+<tr><td>「用 AI 自動回覆客戶信件」</td><td>八成的信件問的是同三件事</td><td>先做三個常見問題的樣板回覆，剩下兩成再談</td></tr>
+</tbody></table></div>
+<div class="card accent">
+<p style="margin-bottom:0"><b>認出假 AI 需求的那一句話：「如果完全不准用 AI，你會怎麼解這個問題？」</b><br>
+<span class="muted">它有效，因為它逼對方描述一個具體的替代方案。對方講得出來而且聽起來不難，那替代方案通常就是答案——至少是第一期的答案。對方答不出來，那才是 AI 可能真的有價值的地方。</span></p>
+</div>
+
+<h3>一個重要的反轉：規則式常常是更好的答案</h3>
+<div class="tblwrap"><table>
+<thead><tr><th>比較項</th><th>規則式</th><th>AI</th></tr></thead>
+<tbody>
+<tr><td>可解釋性</td><td>每個決定都說得出來</td><td>通常說不太清楚</td></tr>
+<tr><td>改一條的成本</td><td>改一行，當天上線</td><td>要重跑、重測、重驗收</td></tr>
+<tr><td>稽核友善度</td><td>高</td><td>需要額外設計</td></tr>
+<tr><td>成本</td><td>一次性，之後幾乎為零</td><td>每次使用都有成本</td></tr>
+<tr><td>弱點</td><td>規則一多就互相打結；問法稍變就接不住</td><td>會錯，而且錯的時候很自信</td></tr>
+</tbody></table></div>
+<p><b>判斷點</b>：規則的數量會不會一直長？會長到幾十條互相打結，就該考慮 AI；維持在十條以內而且很少改，<b>規則式就是正確答案，而且是更專業的答案</b>。</p>
+
+<h3>成本結構：AI 專案的錢花在哪裡</h3>
+<p class="muted">以下不是精確比例，是量級感。</p>
+<div class="tblwrap"><table>
+<thead><tr><th>項目</th><th>相對量級</th><th>說明</th></tr></thead>
+<tbody>
+<tr><td>資料整理與整合</td><td><b>最大</b></td><td>欄位統一、系統串接、歷史資料補齊、標註</td></tr>
+<tr><td>流程重設計與教育訓練</td><td>大</td><td>人要改做法，這段常常完全沒被估進去</td></tr>
+<tr><td>持續維運</td><td>持續發生</td><td>每次使用的費用、定期檢視、重新訓練、人工複核的人力</td></tr>
+<tr><td>模型開發</td><td>小</td><td>現在多數企業場景是「用現成的」，不是「做一個」</td></tr>
+</tbody></table></div>
+<p>這個形狀解釋了為什麼 AI 專案的報價常常嚴重低估：<b>報價通常只報了最後一欄。</b>而且前兩欄的工作主要落在<b>你的部門</b>身上，不是廠商身上。</p>
+<p class="muted"><b>所以看報價時要問</b>：「這個價格裡包含資料整理嗎？包含到什麼程度？不包含的那部分，是誰要做、什麼時候做、要幾個人？」</p>
+
+<div class="boss"><b>給主管的提醒 · 概念 04</b>
+<p>你很可能背著一個「今年要完成 N 個 AI 導入案例」的目標。這個目標的設計本身會製造假 AI 需求——因為對團隊來說，交出一個貼著 AI 標籤的小案子，比論證「這一個我們決定不用 AI」安全得多。</p>
+<p><b>你的動作</b>：把「<b>本期評估後決定不用 AI 的案例</b>」也列為一項可交付成果，並要求它附上四問檢核表。</p>
+<p style="margin-bottom:0">這件事對上也說得通，而且說法很具體：「我們評估了七個流程，其中兩個用規則式解決，省下的成本比做模型更多；另外三個因為資料還不可用，已排入資料整理計畫；本期投入的兩個是在矩陣右上角的那兩個。」<b>這段話比「我們完成了三個 AI 專案」更有說服力，因為它顯示的是判斷力，而判斷力才是高層真正想在你身上看到的東西。</b></p></div>
+`}
+];
+
+const CASES = [
+{tag:"醫療 · 零容錯", t:"影像輔助判讀：高價值但高監管",
+ meta:"技術型態：判別式 AI 為主 ｜ 容錯度：零容錯 ｜ 案例查證日期：2026-10",
+ body:`<p><b>產品情境</b>：影像判讀耗時、依賴經驗，而且同一張片子不同人看可能有不同結論——價值很直接。但它的容錯度在光譜最左邊：錯了會傷人，而且不可逆。</p>
+ <p><b>要示範的事</b>：往光譜左邊走時，正確的做法是<b>改變 AI 的角色</b>。這個產業在 2026 年呈現出一個對 PM 很有啟發的轉向——真正進入臨床日常的，多數不是「診斷型」，而是<b>「把關型」</b>。</p>
+ <div class="tblwrap"><table>
+ <thead><tr><th>型態</th><th>它做什麼</th><th>為什麼卡住／過得去</th></tr></thead>
+ <tbody>
+ <tr><td><b>診斷型</b></td><td>判定這張影像有沒有病灶</td><td>卡在責任歸屬：AI 說有、醫師說沒有，誰負責？取證門檻也最高</td></tr>
+ <tr><td><b>把關型</b></td><td>提示「該拍的切面少了一張」、降低不同人員評分的差異、從影像自動產生紀錄草稿</td><td><b>不改變醫師的決策權</b>，責任結構不變；效益可以用醫院既有的品質指標衡量</td></tr>
+ </tbody></table></div>
+ <p class="muted">這不是技術退讓，是<b>產品定位的選擇</b>。把關型做的是「幫人少漏東西」，不是「代替人做決定」。</p>
+ <p><b>PM 視角的三個關鍵決策</b></p>
+ <ol>
+ <li><b>「取證」和「可以用」是兩件事。</b>在一個市場取得醫療器材許可，不等於在另一個市場可以合法臨床使用。這影響的是你的<b>時程假設</b>——法規路徑可能比開發路徑長得多。<br><span class="muted">→ 實際動作：立案時就把「法規狀態確認」列為<b>獨立的里程碑</b>，不是技術驗證的附帶項目。<b>本課程不提供法規判定</b>，這一步一定要由法務或法規專責人員執行。</span></li>
+ <li><b>自動化偏誤是這類產品最大的隱藏風險。</b>工具越可靠，使用者越可能直接接受結果。而漏掉的少數案例往往正好落在最少被複查的地方，<b>並且通常不會出現在效能報告中</b>。<br><span class="muted">→ 實際動作：把「保留隨機人工複查」與「追蹤『AI 判定無異常、人工後來發現異常』的案例數」寫進驗收條件，並規定抽查比例不因系統變準而下降。</span></li>
+ <li><b>效能數字多半是廠商自述，而「陰性」的意思常被誤解。</b>廠商的準確率通常來自對它有利的測試集；而「本次檢查未發現異常」不等於「沒有問題」。後者是<b>介面與溝通的設計問題</b>。<br><span class="muted">→ 實際動作：要求用自己機構的資料實測一輪；在介面文案上明確區分「未發現」與「沒有」。</span></li>
+ </ol>
+ <p class="muted">另外四個在這個產業特別明顯、但其他產業也成立的落地問題：與現有設備能否實機相容、結果能否進得了既有系統、本地臨床用語的表現如何、誰負責監測自動化偏誤。<b>第二項是最常被低估的卡關點，而它從頭到尾是 PM 的責任。</b></p>`,
+ take:"在零容錯場景，可行的產品不是「更準的 AI」，是換一個角色的 AI。把目標從「代替判斷」改成「減少遺漏」，責任結構不變、審查更容易過、效益還能用既有指標衡量。這個轉向適用於所有低容錯場景，不只醫療。"},
+
+{tag:"物流 · 企業內部流程", t:"需求預測：甜蜜點場景的真正難點",
+ meta:"技術型態：判別式 AI（預測）｜ 容錯度：中高容錯 ｜ 案例查證日期：2026-10",
+ body:`<p><b>產品情境</b>：需求預測常被稱為 AI 應用的甜蜜點，理由很具體——資料是現成的（出貨紀錄本來就在系統裡）、容錯度高（偏差可以用<b>安全庫存</b>——為了應付預測不準而多備的庫存——吸收）、效益算得出來（庫存成本與缺貨率都是既有指標）。</p>
+ <p><b>要示範的事</b>：甜蜜點場景的教學價值不在技術，在於它示範了第三問「值得嗎」的實際做法，以及一個必須養成的反射動作——<b>看到廠商的 ROI（投資報酬率：投入多少、回收多少）數字時，先問那個數字是怎麼算出來的。</b></p>
+ <div class="card accent" style="margin:12px 0">
+ <p style="margin-bottom:0"><b>可查證的結論</b>：業界常見的「降低缺貨與呆滯庫存 20–40%」這類數字，多半沒有說明測試方法，而且比較的基準線往往<b>很弱</b>（例如憑經驗設定的補貨點，而不是一個像樣的統計基準）。同時，常被引用的高報酬案例，經查往往來自<b>別的應用場景</b>（例如最後一哩的派車調度），不是需求預測本身。<br><span class="muted">這不代表需求預測沒有效益——它是真實的。這代表的是：<b>別人的數字不能當成你的預期值。</b></span></p>
+ </div>
+ <p><b>所以你要問的三件事</b>（可以直接用在供應商會議上）</p>
+ <ol>
+ <li><b>基準線怎麼定義的？</b>和「憑經驗補貨」比，還是和一個統計基準比？</li>
+ <li><b>測試期間多長？</b>一個月的結果可能只是運氣，也可能剛好避開旺季。</li>
+ <li><b>用什麼誤差指標？</b>不同指標對「大單偶發」和「小單頻繁」的懲罰完全不同，<b>換個指標結論可能反過來</b>。</li>
+ </ol>
+ <p><b>PM 視角的三個關鍵決策</b></p>
+ <ol>
+ <li><b>先建一個簡單基準線，模型要打贏它才上線。</b>最簡單的版本可能只是「過去三個月的移動平均」。它的價值不只在比較——<b>它還讓你在模型做好之前就有一個可用的答案</b>，而且一週就做得出來。<br><span class="muted">→ 實際動作：把「基準線建立完成且有數字」設為第一個里程碑，排在模型開發之前。</span></li>
+ <li><b>整合成本通常大於模型成本。</b>資料散在倉儲、運輸、ERP 三套不相連的系統裡是常態，要串幾個系統直接決定專案規模。<br><span class="muted">→ 實際動作：立案時數「要串幾個系統」，並把它當成成本的主要變數。<b>範圍蔓延</b>（範圍被一點一點加大，最後失控：想一次做幾千個品項、串五套系統）是這類專案最常見的失控方式；第一期挑一條路線或一類品項。</span></li>
+ <li><b>不重新訓練，效果會安靜地衰退。</b>需求型態會變（新產品、新促銷方式、通路結構改變），模型學到的舊規律慢慢失效，<b>而且不會有任何警示</b>。<br><span class="muted">→ 實際動作：驗收條件寫入「多久重新檢視、誰負責、用什麼指標判斷該重訓」。把成本<b>用金額而不是百分比</b>呈現給管理層——「準確率提高三個百分點」沒有決策力，「預計每年減少庫存積壓 X 元、增加維運成本 Y 元」才有。</span></li>
+ </ol>`,
+ take:"甜蜜點場景的風險不是做不出來，是做出來了但沒人能證明它有效。保護方式只有一個：在模型開始之前，先把基準線量出來並寫下來。另外，看到任何廠商的效益數字，先問基準線、測試期間、誤差指標這三句話——這三句話本身就是一套可以重複使用的工具。"},
+
+{tag:"法務 · 企業內部流程", t:"合約審閱：準確度門檻與人工複核的設計",
+ meta:"技術型態：生成式 AI（搭配檢索）｜ 容錯度：低容錯 ｜ 案例查證日期：2026-10",
+ body:`<p><b>產品情境</b>：企業法務或採購部門每個月要看幾十份合約，大部分是重複性高的標準約。需求很清楚：讓 AI 先讀一遍、標出該注意的條款，人再看重點。使用者是內部人員，沒有華麗介面，但它直接影響公司的風險暴露。</p>
+ <p><b>要示範的事</b>：這個場景的關鍵不在模型多準，在於<b>兩種錯的代價完全不對稱</b>。</p>
+ <div class="tblwrap"><table>
+ <thead><tr><th></th><th>代價</th><th>誰會發現</th></tr></thead>
+ <tbody>
+ <tr><td><b>偽陽性</b><br><span class="muted">多標了一個其實沒問題的條款</span></td><td>法務多花五分鐘確認</td><td>立刻發現</td></tr>
+ <tr><td><b>偽陰性</b><br><span class="muted">漏掉一個不利條款</span></td><td>可能賠一筆錢、可能綁住公司好幾年</td><td><b>可能永遠不會發現</b>，或在爭議發生時才發現</td></tr>
+ </tbody></table></div>
+ <p>結論非常清楚：<b>寧可多報，不可漏報。</b>這句話一旦定下來，整個系統的設計就跟著定了——門檻要設得寬鬆、標註要寧濫勿缺、介面要讓法務很快地刷掉誤報，而不是讓他重讀整份合約。</p>
+ <p class="muted"><b>而這個決定不是技術決定。</b>如果 PM 不把它說出口，系統預設會朝「總體準確率最高」調校，那通常意味著漏報和誤報都壓到中等——<b>這正好是這個場景最糟的設定。</b></p>
+ <p><b>PM 視角的三個關鍵決策</b></p>
+ <ol>
+ <li><b>產品的定位是「分流」，不是「審完」。</b>把目標從「AI 審完合約」改成「<b>AI 把合約分成三堆</b>」：標準約無異常（人快速確認）、有疑慮條款（人重點看）、非標準約（人完整審）。<br><span class="muted">→ 這個定位的好處是<b>效益算得出來、責任不轉移</b>。法務還是那個做決定的人，省下的是他「從頭讀一遍」的時間。這是概念 03「改變角色」在生成式場景的版本。</span></li>
+ <li><b>生成式的輸出必須可追溯到原文。</b>AI 說「第 7.2 條有問題」時，介面要能一鍵跳到第 7.2 條原文。沒有這個，法務要自己找，省下的時間就吐回去了；更糟的是<b>模型可能指出一個不存在的條號或改寫過的內容</b>（W02 的幻覺在這裡的具體長相）。<br><span class="muted">→ 實際動作：把「每一個標註都必須附上原文位置與原文引用」寫成<b>硬性驗收條件</b>，不是體驗優化項目。做不到這一點的方案，不要進下一輪。</span></li>
+ <li><b>「公司的標準」要先寫下來，才有東西可以比對。</b>這個系統實際上是在拿合約比對「我們公司可以接受什麼」。但多數公司的這套標準散在幾位資深法務的腦袋裡，從來沒寫下來過。<br><span class="muted">→ 實際動作：第一個里程碑應該是「<b>條款紅線清單完成並有負責人</b>」，不是「模型上線」。這和 W02 客服案例的知識庫治理是同一件事的不同長相：<b>生成式 AI 的工作量重心在你的知識，不在它的模型。</b></span></li>
+ </ol>`,
+ take:"低容錯場景的 AI 產品，設計的起點是一句話：哪一種錯比較不能忍受。這句話決定門檻、決定介面、決定驗收標準。而在合約審閱這裡它還有第二層——漏掉的那種錯不會自己出現在報表上，所以要刻意設計一個指標去撈它。"}
+];
+
+/* 前 2 題：選擇題；後 4 題：申論題 */
+const MCQ = [
+{q:"你的部門盤點出五條流程。其中「月結對帳差異查核」每週耗掉 12 人時、做錯會被稽核記點，但資料散在三套系統且其中一套是十五年前的老系統、沒有匯出功能。依影響 × 可行性矩陣，這條流程落在哪個象限，這一期該怎麼處理？",
+ o:["影響高、可行性高 → 第一期就做 AI",
+    "影響高、可行性低 → 這一期不做模型，改以「資料變成可用」為交付目標",
+    "影響低、可行性低 → 列入清單、標註日期、暫不處理",
+    "可行性由技術團隊評估，PM 不該預先判斷"],
+ a:1,
+ e:"每週 12 人時加上稽核風險，影響明確偏高；但資料不集中、舊系統無法匯出，可行性明確偏低——典型的「值得投資」象限。<br>重點在那句容易被跳過的處理原則：<b>影響高、可行性低的流程，不要現在做模型，要先去解可行性那一邊。</b>這一期的交付物是「資料整理完成」，它有預算、有業主、有驗收標準。<br>選項 A 是最常見的真實錯誤——因為影響高就直接動手，結果整個專案六個月都在搬資料，而簡報上寫的是做 AI，於是進度永遠落後於承諾。<br>選項 D 的問題在於「資料是否數位、是否集中、欄位是否一致」是<b>業務方最清楚的事</b>，不是技術問題。整包丟給技術團隊，你會得到一個「要評估一下」的回答，然後等三週。"},
+
+{q:"某方案說「我們的合約審閱 AI 準確率 95%」。下列哪一個追問最能決定這個方案在你們公司能不能用？",
+ o:["這 95% 是用多大的模型跑出來的？",
+    "那 5% 是偽陽性（多標）還是偽陰性（漏標）？",
+    "這個準確率在未來半年會不會提升？",
+    "同業用這個方案的準確率是多少？"],
+ a:1,
+ e:"在合約審閱場景裡，兩種錯誤的代價差了好幾個量級。多標一個條款，法務多花五分鐘；漏標一個不利條款可能賠錢，<b>而且可能永遠不會被發現</b>。所以一個「95%」如果幾乎全是誤報，這個方案可用；如果有相當比例是漏報，它不能用——<b>同一個數字，兩種完全不同的結論。</b><br>選項 A 是技術問題，不影響你的決策（而且模型大小和你的場景表現沒有可靠關係）。<br>選項 C 是銷售話術的入口：「會越來越準」的前提是有人設計回饋機制，要問的是「蒐集什麼訊號、誰回灌、多久一次」（W02 練過）。<br>選項 D 不是沒有價值，但同業的資料、合約類型、紅線標準都和你不同，<b>它的 95% 跟你的 95% 不是同一個 95%</b>。<br>另外：這一題問完之後還有一句一定要問——<b>「和我們法務現在自己看的正確率比，是高還是低？」</b>沒有基準線，95% 這個數字沒有意義。"}
+];
+
+const ESSAY = [
+{q:"你的老闆參加完一場研討會回來，說：「我們也要做一個 AI 自動回覆客戶信件的系統，別家都有了。」請寫出你會做的三個動作與會問的三個問題，並說明每一個想確認什麼。",
+ r:`<p>請注意：正確的回應不是說服他不要做，也不是直接開工，而是<b>把一個願望轉成一個可評估的提案</b>。</p>
+ <p><b>三個動作</b></p>
+ <ol>
+ <li><b>先撈現況數據。</b>一個月有幾封信、問的是什麼、現在幾個人處理、平均多久回、回錯的比例。這是基準線，<b>沒有它做完也證明不了有效</b>。</li>
+ <li><b>做一次信件分類盤點。</b>把上個月的信抽一百封分類。極可能發現八成在問同三件事——這直接決定第一期範圍，也可能直接指出假 AI 需求。</li>
+ <li><b>把它放進矩陣，和其他候選流程一起排。</b>用途是讓「先做這個」或「先做別的」都有說得出口的理由，而不是變成你跟老闆的意見之爭。</li>
+ </ol>
+ <p><b>三個問題</b></p>
+ <ol>
+ <li><b>「回錯一封信的代價是什麼？」</b>（容錯度）客戶抱怨、承諾了做不到的事、還是法律風險？這決定要不要人工複核，也決定第一期敢不敢自動發送。</li>
+ <li><b>「我們的信件和回覆紀錄在哪裡、什麼格式？」</b>（第一問）散在幾個共用信箱、沒有分類標籤、附件格式各異的話，這是真實的工作量。</li>
+ <li><b>「誰是業主，上線後誰看指標？」</b>（第四問）老闆是贊助者，不是業主。沒有一個會因此被問責的人，這個專案會在第三個月失去優先級。</li>
+ </ol>
+ <p><b>自我檢核</b>：你的回答裡有沒有一個版本是「<b>先做不用 AI 的那個</b>」？八成信件問同三件事的話，三個樣板回覆這一期就能上，而且它會成為 AI 版本的基準線。<b>提出更便宜的替代方案，比擋掉提案有效得多</b>——因為它給了老闆一個可以帶出去講的成果。</p>`},
+
+{q:"請用不超過 150 字，向一位非技術主管解釋：為什麼「準確率 95%」這個數字本身不足以決定要不要上線？",
+ r:`<p>一個可用的講法：</p>
+ <div class="card" style="margin:10px 0"><p style="margin:0">95% 的意思是一百件裡錯五件，但它沒有告訴我們三件事：錯的那五件是哪一種錯、錯的那五件落在誰身上、以及人自己做的時候是幾分。如果錯的是「漏掉」而不是「多報」，而漏掉的那幾件正好是大客戶，那這個 95% 對我們來說是不及格。如果我們自己做是 98%，那它其實是在降低品質。所以我會建議：用我們自己的一百筆資料實測，看錯的方向和分群表現，再決定。</p></div>
+ <p><b>自我檢核</b>：你的答案有沒有包含<b>錯誤方向</b>、<b>分群表現</b>、<b>基準線</b>這三件事？少了基準線那一項，主管聽完的反應會是「那你要幾趴才肯上線」——而那是一個沒有答案的問題。</p>
+ <p>另外檢查：你有沒有在最後接上一句具體的下一步？解釋完要給做法，這是 W02 就開始練的向上溝通基本功。</p>`},
+
+{q:"你們公司今年的目標寫著「完成三個 AI 導入案例」。你評估了七條流程，結論是其中兩條用規則式解決更便宜、三條的資料還不可用、只有兩條值得現在做 AI。請寫出你會怎麼向高層報告這個結論。",
+ r:`<p>關鍵在於<b>不要把它報成「我們只做得到兩個」</b>，而要報成「我們做了七個評估、產出了三種處置」。</p>
+ <ol>
+ <li><b>先給數字框架</b>：「評估七條流程，本期投入兩條，另外五條各有明確處置。」</li>
+ <li><b>把『不做 AI』講成成果</b>：「兩條用規則式解決，一週內可上線，成本低於做模型，每一個決定都說得出理由、稽核友善。」——這是判斷力的展示，不是退讓。</li>
+ <li><b>把『資料不可用』講成下一期的題目</b>：「三條的資料還在紙本與舊系統上，本期交付『資料整理完成』，下一期重新評估。」——同時解釋了為什麼不能更快，也要到了下一期的資源。</li>
+ <li><b>最後才講那兩個要做的</b>：為什麼是這兩個（矩陣位置）、第一個里程碑是什麼、誰是業主。</li>
+ </ol>
+ <p><b>自我檢核</b>：你的報告裡有沒有出現「<b>我們評估的過程</b>」？高層對「做了幾個」的興趣，低於對「你是怎麼決定的」的興趣——因為前者他可以自己數，後者只有你能提供。</p>
+ <p>難的部分：如果 KPI 的字面意思就是三個案例，這段話仍然需要你承擔「沒達標」的風險。所以第 2 點的講法很要緊——<b>把規則式方案也算成導入案例</b>（它確實是流程自動化的導入），同時誠實標註它不是 AI。這不是玩文字遊戲，是把 KPI 的設計缺陷攤開來談。</p>`},
+
+{q:"請挑一個你公司內部的流程，寫出如果要在它上面導入 AI，「偽陽性」和「偽陰性」分別是什麼、各自的代價是什麼、你會選哪一邊、以及你會怎麼設計人工複核。",
+ r:`<p>以「發票異常偵測」為例：</p>
+ <div class="tblwrap"><table>
+ <thead><tr><th></th><th>內容</th><th>代價</th><th>誰會發現</th></tr></thead>
+ <tbody>
+ <tr><td><b>偽陽性</b></td><td>把正常發票標成異常</td><td>財務多花時間確認，每筆約 5 分鐘</td><td>立刻</td></tr>
+ <tr><td><b>偽陰性</b></td><td>異常發票被放過</td><td>付錯錢、月結對不起來、可能被稽核</td><td>可能要到月結或稽核才發現</td></tr>
+ </tbody></table></div>
+ <p><b>選擇</b>：寧可誤報。因為誤報的代價是可量化的人時，漏報的代價不可逆而且發現得晚。</p>
+ <p><b>人工複核設計</b>（本題真正的評分重點，三件事都要有）</p>
+ <ol>
+ <li>所有被標為異常的件 100% 人工確認（這是誤報的代價，接受它）。</li>
+ <li>被判定「正常」的件，<b>每週隨機抽查固定比例</b>，而且這個比例<b>不因系統變準而下降</b>——這是對抗自動化偏誤的設計。</li>
+ <li>追蹤「AI 說正常、人後來發現異常」的件數，每月回顧。這個數字上升就是最早的警訊。</li>
+ </ol>
+ <p><b>自我檢核</b>：你的複核設計裡有沒有第 2 點？大部分人會寫第 1 點（複核它標出來的），但<b>真正的風險在它沒標出來的那一堆</b>，而那一堆不會自己叫你去看。</p>`}
+];
+
+/* ---------- 渲染 ---------- */
+const stepsBox = document.getElementById('steps');
+stepsBox.innerHTML = STEPS.map((s,i)=>
+  `<button data-i="${i}" aria-current="${i===0}">${i+1}. ${s}</button>`).join('');
+
+document.getElementById('terms').innerHTML = TERMS.map(t=>
+  `<div class="term"><div class="n">${t.n}</div><div class="d">${t.d}</div><div class="m">${t.m}</div></div>`).join('');
+
+document.getElementById('concepts').innerHTML = CONCEPTS.map((c,i)=>`
+ <div class="acc" open-state="0">
+   <button data-i="${i}"><span class="idx">${c.i}</span>${c.t}<span class="ar">›</span></button>
+   <div class="body" hidden>${c.h}</div>
+ </div>`).join('');
+
+document.querySelectorAll('.acc > button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const acc=b.parentElement, body=acc.querySelector('.body');
+    const open = acc.getAttribute('open-state')==='1';
+    acc.setAttribute('open-state', open?'0':'1');
+    body.hidden = open;
+  });
+});
+
+/* 四問自評器 */
+(function(){
+  const box=document.getElementById('fourq'); if(!box) return;
+  const out=document.getElementById('fqout');
+  const LABEL={'1':'第一問 · 有資料嗎','1b':'第一問 · 有資料嗎（正確答案／標註）',
+    '2':'第二問 · 容錯嗎（可逆性）','2b':'第二問 · 容錯嗎（錯誤方向未定）',
+    '3':'第三問 · 值得嗎（基準線）','3b':'第三問 · 值得嗎（最笨做法）',
+    '4':'第四問 · 做得完嗎（業主）','4b':'第四問 · 做得完嗎（維運）'};
+  const ans={};
+  box.querySelectorAll('.fq').forEach(fq=>{
+    fq.querySelectorAll('.fqo button').forEach(b=>{
+      b.addEventListener('click',()=>{
+        fq.querySelectorAll('.fqo button').forEach(x=>x.setAttribute('aria-pressed','false'));
+        b.setAttribute('aria-pressed','true');
+        ans[fq.dataset.k]=+b.dataset.v;
+        render();
+      });
+    });
+  });
+  function render(){
+    const keys=Object.keys(LABEL);
+    const done=keys.filter(k=>k in ans).length;
+    const zeros=keys.filter(k=>ans[k]===0);
+    if(done<keys.length){
+      out.innerHTML=`已作答 ${done} / ${keys.length} 題。`+
+        (zeros.length?` 目前亮燈的弱項：<b>${zeros.map(k=>LABEL[k]).join('、')}</b>。`:' 目前沒有弱項。')+
+        ' 八題答完會給你判斷方向。';
+      return;
+    }
+    if(zeros.length===0){
+      out.innerHTML='<b>八題全過。</b>這種結果有兩種可能：這條流程真的準備好了，或者你還沒跟實際執行的人確認過。'+
+        '請把這八題拿給流程裡的實際執行者各問一次——<b>四問全過的答案，通常代表還沒認真問。</b>'+
+        '如果確認無誤，這條流程可以進入本期，下一步是訂出第一個里程碑與具名業主。';
+      return;
+    }
+    const first=zeros[0];
+    const RX={'1':'這一期的目標改成「把資料變成可用」，不要現在做模型。交付物是資料整理完成，它有預算、有業主、有驗收標準。',
+      '1b':'先確認標註要標幾筆、誰標、標多久，並把這筆人力成本寫進預算。沒算進去的標註成本會在專案中期變成進度黑洞。',
+      '2':'不可逆的環節一定要有人工確認點，不管模型多準。先把範圍縮到「AI 給建議、人做決定」，或改做高容錯的子流程。',
+      '2b':'在立案會議上把「我們寧可誤報／寧可漏掉」說出口並記進會議紀錄。這一題不回答，技術團隊會用模型預設值替你回答。',
+      '3':'先花一週把基準線量出來（人做得多好、多快、多少成本）。沒有基準線，上線後沒有人能證明它有效或無效。',
+      '3b':'先評估「不用 AI 的最笨做法」。如果它講得出來而且不難，那通常就是第一期的答案——這可能是一個假 AI 需求。',
+      '4':'先找到一個會因為這件事做不好而被問責的具名業主。只有贊助者的專案會在第三個月失去優先級。',
+      '4b':'上線前訂好三件事：具名負責人、看什麼數字（含「AI 說沒問題、人後來發現有問題」的件數）、多久看一次。'};
+    out.innerHTML=`<b>最弱的一問：${LABEL[first]}</b>`+
+      (zeros.length>1?`（另有 ${zeros.length-1} 項亮燈：${zeros.slice(1).map(k=>LABEL[k]).join('、')}）`:'')+
+      `<br><b>你的下一步</b>：${RX[first]}`+
+      `<br><span class="muted">提醒：四問的順序不能換。前面的問題沒解決，後面的評估不會變得更有用。</span>`;
+  }
+})();
+
+document.getElementById('cases').innerHTML = CASES.map(c=>`
+ <article class="case">
+   <span class="tag">${c.tag}</span>
+   <h3>${c.t}</h3>
+   <div class="meta">${c.meta}</div>
+   ${c.body}
+   <div class="take"><b>帶走的啟發 ▸</b> ${c.take}</div>
+ </article>`).join('');
+
+const quizBox=document.getElementById('quiz');
+quizBox.innerHTML =
+ MCQ.map((q,qi)=>`
+ <div class="q">
+   <span class="kind">選擇題</span>
+   <div class="qt">Q${qi+1}. ${q.q}</div>
+   <div class="opts">${q.o.map((o,oi)=>
+     `<button class="opt" data-q="${qi}" data-o="${oi}">${String.fromCharCode(65+oi)}. ${o}</button>`).join('')}</div>
+   <div class="exp" hidden id="exp${qi}"><b>解析：</b>${q.e}</div>
+ </div>`).join('')
+ + ESSAY.map((q,ei)=>`
+ <div class="q">
+   <span class="kind">申論題</span>
+   <div class="qt">Q${ei+3}. ${q.q}</div>
+   <p class="note">請先自己寫下答案，再展開參考方向。申論題沒有唯一答案，重點是你的理由。</p>
+   <button class="revealbtn" data-e="${ei}">展開參考方向</button>
+   <div class="exp" hidden id="eexp${ei}">${q.r}</div>
+ </div>`).join('');
+
+let answered=0, correct=0;
+quizBox.querySelectorAll('.opt').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const qi=+btn.dataset.q, oi=+btn.dataset.o;
+    const group=btn.closest('.opts');
+    if(group.dataset.done) return;
+    group.dataset.done='1';
+    group.querySelectorAll('.opt').forEach((b,i)=>{
+      b.disabled=true;
+      if(i===MCQ[qi].a) b.classList.add('right');
+      else if(i===oi) b.classList.add('wrong');
+    });
+    document.getElementById('exp'+qi).hidden=false;
+    answered++; if(oi===MCQ[qi].a) correct++;
+    const s=document.getElementById('score');
+    s.textContent = `選擇題已作答 ${answered} / ${MCQ.length}　答對 ${correct} 題` +
+      (answered===MCQ.length ? (correct===2?'　✓ 矩陣的處理原則與錯誤方向都抓到了，請繼續完成四題申論。'
+        : '　建議回頭重讀核心概念 01 與 03，再往下做申論題。') : '');
+  });
+});
+quizBox.querySelectorAll('.revealbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const box=document.getElementById('eexp'+btn.dataset.e);
+    box.hidden=!box.hidden;
+    btn.textContent = box.hidden ? '展開參考方向' : '收起參考方向';
+  });
+});
+
+/* ---------- 導覽 ---------- */
+let cur=0;
+const secs=[...document.querySelectorAll('section[data-s]')];
+const prev=document.getElementById('prev'), next=document.getElementById('next');
+function go(i){
+  cur=Math.max(0,Math.min(STEPS.length-1,i));
+  secs.forEach(s=>s.hidden = +s.dataset.s !== cur);
+  stepsBox.querySelectorAll('button').forEach((b,bi)=>b.setAttribute('aria-current', bi===cur));
+  prev.disabled = cur===0;
+  next.disabled = cur===STEPS.length-1;
+  next.textContent = cur===STEPS.length-1 ? '已是最後一節' : '下一節 →';
+  document.getElementById('bar').style.width = ((cur+1)/STEPS.length*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+stepsBox.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) go(+b.dataset.i); });
+prev.addEventListener('click',()=>go(cur-1));
+next.addEventListener('click',()=>go(cur+1));
+go(0);
+
+/* ---------- 主題 ---------- */
+const tb=document.getElementById('tbtn');
+function curT(){return document.documentElement.getAttribute('data-theme')
+  || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}
+function paint(){tb.textContent = curT()==='dark'?'☀ 淺色':'☾ 深色';}
+tb.addEventListener('click',()=>{
+  document.documentElement.setAttribute('data-theme', curT()==='dark'?'light':'dark'); paint();});
+paint();
+</script>
+</body>
+</html>
